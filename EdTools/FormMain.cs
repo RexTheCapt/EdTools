@@ -1,19 +1,9 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel;
-using System.Data;
-using System.Diagnostics;
-using System.Drawing;
-using System.IO;
-using System.Linq;
-using System.Net.Http;
-using System.Text;
-using System.Threading.Tasks;
 using System.Windows.Forms;
 
-using Newtonsoft.Json.Linq;
+using EDNeutronRouterPlugin;
 
-using RestSharp;
+using Newtonsoft.Json.Linq;
 
 namespace EdTools
 {
@@ -26,7 +16,23 @@ namespace EdTools
 
         private void ButtonStartRoute_Click(object sender, EventArgs e)
         {
-            JToken jToken = EDNeutronRouterPlugin.NeutronRouterAPI.GetNewRoute("sol", textBox1.Text, 70, 60);
+            JToken jToken;
+            try
+            {
+                jToken = EDNeutronRouterPlugin.NeutronRouterAPI.GetNewRoute("sol", textBox1.Text, 70, 60);
+            }
+            catch (Exception ex)
+            {
+                Type t = ex.GetType();
+
+                if (t == typeof(InvalidSystemException))
+                {
+                    MessageBox.Show("Invalid system", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                else
+                    throw;
+            }
 
             listView1.Items.Clear();
             foreach (JObject j in jToken.Value<JArray>("system_jumps"))
