@@ -1,4 +1,5 @@
 ﻿using System;
+using System.IO;
 using System.Windows.Forms;
 
 using EDNeutronRouterPlugin;
@@ -9,9 +10,17 @@ namespace EdTools
 {
     public partial class FormMain : Form
     {
+        public static readonly string JournalPath = $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\\Saved Games\\Frontier Developments\\Elite Dangerous";
+
+        private Timer _timerJournalScanner;
+
         public FormMain()
         {
             InitializeComponent();
+            _timerJournalScanner = new Timer();
+            _timerJournalScanner.Interval = 100;
+            _timerJournalScanner.Tick += JournalScanner.TimerScan;
+            _timerJournalScanner.Enabled = true;
         }
 
         private void ButtonStartRoute_Click(object sender, EventArgs e)
