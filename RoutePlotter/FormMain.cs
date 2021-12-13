@@ -6,7 +6,9 @@ using EDNeutronRouterPlugin;
 
 using Newtonsoft.Json.Linq;
 
-namespace EdTools
+using EdTools;
+
+namespace RoutePlotter
 {
     public partial class FormMain : Form
     {
@@ -36,7 +38,7 @@ namespace EdTools
             InitializeComponent();
 
             #region Setup journal scanner
-            JournalScanner = new JournalScanner();
+            JournalScanner = new JournalScanner(JournalPath);
 
             _currentStarSystem = CurrentStarSystem = "[UNKNOWN]";
             JournalScanner.DockedHandler += JournalScanner_DockedHandler;

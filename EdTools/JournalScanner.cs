@@ -1,28 +1,27 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 namespace EdTools
 {
-    internal class JournalScanner
+    public class JournalScanner
     {
-        internal DateTime LastEventTime { get; private set; }
-        internal DateTime LastWriteTime { get; private set; }
-        internal bool FirstRun { get => _firstRun; private set { _firstRun = value; } }
+        public DateTime LastEventTime { get; private set; }
+        public DateTime LastWriteTime { get; private set; }
+        public bool FirstRun { get => _firstRun; private set { _firstRun = value; } }
         private bool _firstRun = true;
+        private string _journalPath;
 
-        internal void TimerScan(object? sender, EventArgs e)
+        public JournalScanner (string journalPath)
+        {
+            _journalPath = journalPath;
+        }
+
+        public void TimerScan(object? sender, EventArgs e)
         {
             string newest = "";
             DateTime currentWriteTime = DateTime.MinValue;
 
-            foreach (string f in Directory.GetFiles(FormMain.JournalPath, "Journal.*.log"))
+            foreach (string f in Directory.GetFiles(_journalPath, "Journal.*.log"))
             {
                 FileInfo fi = new FileInfo(f);
 
@@ -50,8 +49,7 @@ namespace EdTools
                                     #region Debug stuff
                                     if (@event.Value<string>("StarSystem") != null && eventType != "Scan" && eventType != "StartJump" && eventType != "FSDJump" && eventType != "SupercruiseExit" && eventType != "SupercruiseEntry" && eventType != "ApproachBody" && eventType != "Touchdown" && eventType != "Liftoff" && eventType != "Disembark" && eventType != "Embark" && eventType != "LeaveBody" && eventType != "Location" && eventType != "Docked" && eventType != "StoredShips" && eventType != "Outfitting" && eventType != "Shipyard" && eventType != "ScanBaryCentre" && eventType != "Market" && eventType != "StoredModules" && eventType != "CarrierJump")
                                     {
-                                        System.Windows.Forms.Clipboard.SetText(eventType);
-                                        Console.WriteLine("HasStarSystem");
+                                        Console.WriteLine(eventType);
                                     }
                                     #endregion
 #endif
@@ -301,9 +299,512 @@ namespace EdTools
         }
 
         #region Events
+        #region CockpitBreached
+        public static event EventHandler CockpitBreachedHandler;
 
+        protected virtual void OnCockpitBreached(CockpitBreachedEventArgs e)
+        {
+            EventHandler handler = CockpitBreachedHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class CockpitBreachedEventArgs : EventArgs
+        {
+            public CockpitBreachedEventArgs(JObject @event, bool firstRun)
+            {
+                CockpitBreached = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject CockpitBreached { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region BuyDrones
+        public static event EventHandler BuyDronesHandler;
+
+        protected virtual void OnBuyDrones(BuyDronesEventArgs e)
+        {
+            EventHandler handler = BuyDronesHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class BuyDronesEventArgs : EventArgs
+        {
+            public BuyDronesEventArgs(JObject @event, bool firstRun)
+            {
+                BuyDrones = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject BuyDrones { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region SellDrones
+        public static event EventHandler SellDronesHandler;
+
+        protected virtual void OnSellDrones(SellDronesEventArgs e)
+        {
+            EventHandler handler = SellDronesHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class SellDronesEventArgs : EventArgs
+        {
+            public SellDronesEventArgs(JObject @event, bool firstRun)
+            {
+                SellDrones = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject SellDrones { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region RepairDrone
+        public static event EventHandler RepairDroneHandler;
+
+        protected virtual void OnRepairDrone(RepairDroneEventArgs e)
+        {
+            EventHandler handler = RepairDroneHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class RepairDroneEventArgs : EventArgs
+        {
+            public RepairDroneEventArgs(JObject @event, bool firstRun)
+            {
+                RepairDrone = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject RepairDrone { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region WingJoin
+        public static event EventHandler WingJoinHandler;
+
+        protected virtual void OnWingJoin(WingJoinEventArgs e)
+        {
+            EventHandler handler = WingJoinHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class WingJoinEventArgs : EventArgs
+        {
+            public WingJoinEventArgs(JObject @event, bool firstRun)
+            {
+                WingJoin = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject WingJoin { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region WingLeave
+        public static event EventHandler WingLeaveHandler;
+
+        protected virtual void OnWingLeave(WingLeaveEventArgs e)
+        {
+            EventHandler handler = WingLeaveHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class WingLeaveEventArgs : EventArgs
+        {
+            public WingLeaveEventArgs(JObject @event, bool firstRun)
+            {
+                WingLeave = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject WingLeave { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region WingAdd
+        public static event EventHandler WingAddHandler;
+
+        protected virtual void OnWingAdd(WingAddEventArgs e)
+        {
+            EventHandler handler = WingAddHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class WingAddEventArgs : EventArgs
+        {
+            public WingAddEventArgs(JObject @event, bool firstRun)
+            {
+                WingAdd = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject WingAdd { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region WingInvite
+        public static event EventHandler WingInviteHandler;
+
+        protected virtual void OnWingInvite(WingInviteEventArgs e)
+        {
+            EventHandler handler = WingInviteHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class WingInviteEventArgs : EventArgs
+        {
+            public WingInviteEventArgs(JObject @event, bool firstRun)
+            {
+                WingInvite = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject WingInvite { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region JetConeBoost
+        public static event EventHandler JetConeBoostHandler;
+
+        protected virtual void OnJetConeBoost(JetConeBoostEventArgs e)
+        {
+            EventHandler handler = JetConeBoostHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class JetConeBoostEventArgs : EventArgs
+        {
+            public JetConeBoostEventArgs(JObject @event, bool firstRun)
+            {
+                JetConeBoost = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject JetConeBoost { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region ScanBaryCentre
+        public static event EventHandler ScanBaryCentreHandler;
+
+        protected virtual void OnScanBaryCentre(ScanBaryCentreEventArgs e)
+        {
+            EventHandler handler = ScanBaryCentreHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class ScanBaryCentreEventArgs : EventArgs
+        {
+            public ScanBaryCentreEventArgs(JObject @event, bool firstRun)
+            {
+                ScanBaryCentre = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject ScanBaryCentre { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region ShipTargeted
+        public static event EventHandler ShipTargetedHandler;
+
+        protected virtual void OnShipTargeted(ShipTargetedEventArgs e)
+        {
+            EventHandler handler = ShipTargetedHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class ShipTargetedEventArgs : EventArgs
+        {
+            public ShipTargetedEventArgs(JObject @event, bool firstRun)
+            {
+                ShipTargeted = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject ShipTargeted { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region FuelScoop
+        public static event EventHandler FuelScoopHandler;
+
+        protected virtual void OnFuelScoop(FuelScoopEventArgs e)
+        {
+            EventHandler handler = FuelScoopHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class FuelScoopEventArgs : EventArgs
+        {
+            public FuelScoopEventArgs(JObject @event, bool firstRun)
+            {
+                FuelScoop = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject FuelScoop { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region Scan
+        public static event EventHandler ScanHandler;
+
+        protected virtual void OnScan(ScanEventArgs e)
+        {
+            EventHandler handler = ScanHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class ScanEventArgs : EventArgs
+        {
+            public ScanEventArgs(JObject @event, bool firstRun)
+            {
+                Scan = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject Scan { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region Location
+        public static event EventHandler LocationHandler;
+
+        protected virtual void OnLocation(LocationEventArgs e)
+        {
+            EventHandler handler = LocationHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class LocationEventArgs : EventArgs
+        {
+            public LocationEventArgs(JObject @event, bool firstRun)
+            {
+                Location = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject Location { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region LoadGame
+        public static event EventHandler LoadGameHandler;
+
+        protected virtual void OnLoadGame(LoadGameEventArgs e)
+        {
+            EventHandler handler = LoadGameHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class LoadGameEventArgs : EventArgs
+        {
+            public LoadGameEventArgs(JObject @event, bool firstRun)
+            {
+                LoadGame = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject LoadGame { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region ReservoirReplenished
+        public static event EventHandler ReservoirReplenishedHandler;
+
+        protected virtual void OnReservoirReplenished(ReservoirReplenishedEventArgs e)
+        {
+            EventHandler handler = ReservoirReplenishedHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class ReservoirReplenishedEventArgs : EventArgs
+        {
+            public ReservoirReplenishedEventArgs(JObject @event, bool firstRun)
+            {
+                ReservoirReplenished = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject ReservoirReplenished { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region Docked
+        public static event EventHandler DockedHandler;
+
+        protected virtual void OnDocked(DockedEventArgs e)
+        {
+            EventHandler handler = DockedHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class DockedEventArgs : EventArgs
+        {
+            public DockedEventArgs(JObject @event, bool firstRun)
+            {
+                Docked = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject Docked { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region ApproachBody
+        public static event EventHandler ApproachBodyHandler;
+
+        protected virtual void OnApproachBody(ApproachBodyEventArgs e)
+        {
+            EventHandler handler = ApproachBodyHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class ApproachBodyEventArgs : EventArgs
+        {
+            public ApproachBodyEventArgs(JObject @event, bool firstRun)
+            {
+                ApproachBody = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject ApproachBody { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region LeaveBody
+        public static event EventHandler LeaveBodyHandler;
+
+        protected virtual void OnLeaveBody(LeaveBodyEventArgs e)
+        {
+            EventHandler handler = LeaveBodyHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class LeaveBodyEventArgs : EventArgs
+        {
+            public LeaveBodyEventArgs(JObject @event, bool firstRun)
+            {
+                LeaveBody = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject LeaveBody { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region Friends
+        public static event EventHandler FriendsHandler;
+
+        protected virtual void OnFriends(FriendsEventArgs e)
+        {
+            EventHandler handler = FriendsHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class FriendsEventArgs : EventArgs
+        {
+            public FriendsEventArgs(JObject @event, bool firstRun)
+            {
+                Friends = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject Friends { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region SupercruiseExit
+        public static event EventHandler SupercruiseExitHandler;
+
+        protected virtual void OnSupercruiseExit(SupercruiseExitEventArgs e)
+        {
+            EventHandler handler = SupercruiseExitHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class SupercruiseExitEventArgs : EventArgs
+        {
+            public SupercruiseExitEventArgs(JObject @event, bool firstRun)
+            {
+                SupercruiseExit = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject SupercruiseExit { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region FSDJump
+        public static event EventHandler FSDJumpHandler;
+
+        protected virtual void OnFSDJump(FSDJumpEventArgs e)
+        {
+            EventHandler handler = FSDJumpHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class FSDJumpEventArgs : EventArgs
+        {
+            public FSDJumpEventArgs(JObject @event, bool firstRun)
+            {
+                FSDJump = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject FSDJump { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region SupercruiseEntry
+        public static event EventHandler SupercruiseEntryHandler;
+
+        protected virtual void OnSupercruiseEntry(SupercruiseEntryEventArgs e)
+        {
+            EventHandler handler = SupercruiseEntryHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class SupercruiseEntryEventArgs : EventArgs
+        {
+            public SupercruiseEntryEventArgs(JObject @event, bool firstRun)
+            {
+                SupercruiseEntry = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject SupercruiseEntry { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region Loadout
+        public static event EventHandler LoadoutHandler;
+
+        protected virtual void OnLoadout(LoadoutEventArgs e)
+        {
+            EventHandler handler = LoadoutHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class LoadoutEventArgs : EventArgs
+        {
+            public LoadoutEventArgs(JObject @event, bool firstRun)
+            {
+                Loadout = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject Loadout { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
         #region CarrierJump
-        internal static event EventHandler CarrierJumpHandler;
+        public static event EventHandler CarrierJumpHandler;
 
         protected virtual void OnCarrierJump(CarrierJumpEventArgs e)
         {
@@ -311,7 +812,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        internal class CarrierJumpEventArgs : EventArgs
+        public class CarrierJumpEventArgs : EventArgs
         {
             public CarrierJumpEventArgs(JObject @event, bool firstRun)
             {
@@ -324,7 +825,7 @@ namespace EdTools
         }
         #endregion
         #region StoredModules
-        internal static event EventHandler StoredModulesHandler;
+        public static event EventHandler StoredModulesHandler;
 
         protected virtual void OnStoredModules(StoredModulesEventArgs e)
         {
@@ -332,7 +833,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        internal class StoredModulesEventArgs : EventArgs
+        public class StoredModulesEventArgs : EventArgs
         {
             public StoredModulesEventArgs(JObject @event, bool firstRun)
             {
@@ -345,7 +846,7 @@ namespace EdTools
         }
         #endregion
         #region Market
-        internal static event EventHandler MarketHandler;
+        public static event EventHandler MarketHandler;
 
         protected virtual void OnMarket(MarketEventArgs e)
         {
@@ -353,7 +854,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        internal class MarketEventArgs : EventArgs
+        public class MarketEventArgs : EventArgs
         {
             public MarketEventArgs(JObject @event, bool firstRun)
             {
@@ -366,7 +867,7 @@ namespace EdTools
         }
         #endregion
         #region Shipyard
-        internal static event EventHandler ShipyardHandler;
+        public static event EventHandler ShipyardHandler;
 
         protected virtual void OnShipyard(ShipyardEventArgs e)
         {
@@ -374,7 +875,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        internal class ShipyardEventArgs : EventArgs
+        public class ShipyardEventArgs : EventArgs
         {
             public ShipyardEventArgs(JObject @event, bool firstRun)
             {
@@ -387,7 +888,7 @@ namespace EdTools
         }
         #endregion
         #region Outfitting
-        internal static event EventHandler OutfittingHandler;
+        public static event EventHandler OutfittingHandler;
 
         protected virtual void OnOutfitting(OutfittingEventArgs e)
         {
@@ -395,7 +896,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        internal class OutfittingEventArgs : EventArgs
+        public class OutfittingEventArgs : EventArgs
         {
             public OutfittingEventArgs(JObject @event, bool firstRun)
             {
@@ -408,7 +909,7 @@ namespace EdTools
         }
         #endregion
         #region StoredShips
-        internal static event EventHandler StoredShipsHandler;
+        public static event EventHandler StoredShipsHandler;
 
         protected virtual void OnStoredShips(StoredShipsEventArgs e)
         {
@@ -416,7 +917,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        internal class StoredShipsEventArgs : EventArgs
+        public class StoredShipsEventArgs : EventArgs
         {
             public StoredShipsEventArgs(JObject @event, bool firstRun)
             {
@@ -429,7 +930,7 @@ namespace EdTools
         }
         #endregion
         #region Embark
-        internal static event EventHandler EmbarkHandler;
+        public static event EventHandler EmbarkHandler;
 
         protected virtual void OnEmbark(EmbarkEventArgs e)
         {
@@ -437,7 +938,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        internal class EmbarkEventArgs : EventArgs
+        public class EmbarkEventArgs : EventArgs
         {
             public EmbarkEventArgs(JObject @event, bool firstRun)
             {
@@ -450,7 +951,7 @@ namespace EdTools
         }
         #endregion
         #region Disembark
-        internal static event EventHandler DisembarkHandler;
+        public static event EventHandler DisembarkHandler;
 
         protected virtual void OnDisembark(DisembarkEventArgs e)
         {
@@ -458,7 +959,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        internal class DisembarkEventArgs : EventArgs
+        public class DisembarkEventArgs : EventArgs
         {
             public DisembarkEventArgs(JObject @event, bool firstRun)
             {
@@ -471,7 +972,7 @@ namespace EdTools
         }
         #endregion
         #region Liftoff
-        internal static event EventHandler LiftoffHandler;
+        public static event EventHandler LiftoffHandler;
 
         protected virtual void OnLiftoff(LiftoffEventArgs e)
         {
@@ -479,7 +980,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        internal class LiftoffEventArgs : EventArgs
+        public class LiftoffEventArgs : EventArgs
         {
             public LiftoffEventArgs(JObject @event, bool firstRun)
             {
@@ -492,7 +993,7 @@ namespace EdTools
         }
         #endregion
         #region Touchdown
-        internal static event EventHandler TouchdownHandler;
+        public static event EventHandler TouchdownHandler;
 
         protected virtual void OnTouchdown(TouchdownEventArgs e)
         {
@@ -500,7 +1001,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        internal class TouchdownEventArgs : EventArgs
+        public class TouchdownEventArgs : EventArgs
         {
             public TouchdownEventArgs(JObject @event, bool firstRun)
             {
@@ -509,534 +1010,6 @@ namespace EdTools
             }
 
             public JObject Touchdown { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region Loadout
-        internal static event EventHandler LoadoutHandler;
-
-        protected virtual void OnLoadout(LoadoutEventArgs e)
-        {
-            EventHandler handler = LoadoutHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class LoadoutEventArgs : EventArgs
-        {
-            public LoadoutEventArgs(JObject @event, bool firstRun)
-            {
-                Loadout = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject Loadout { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region SupercruiseEntry
-        internal static event EventHandler SupercruiseEntryHandler;
-
-        protected virtual void OnSupercruiseEntry(SupercruiseEntryEventArgs e)
-        {
-            EventHandler handler = SupercruiseEntryHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class SupercruiseEntryEventArgs : EventArgs
-        {
-            public SupercruiseEntryEventArgs(JObject @event, bool firstRun)
-            {
-                SupercruiseEntry = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject SupercruiseEntry { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region FSDJump
-        internal static event EventHandler FSDJumpHandler;
-
-        protected virtual void OnFSDJump(FSDJumpEventArgs e)
-        {
-            EventHandler handler = FSDJumpHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class FSDJumpEventArgs : EventArgs
-        {
-            public FSDJumpEventArgs(JObject @event, bool firstRun)
-            {
-                FSDJump = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject FSDJump { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region SupercruiseExit
-        internal static event EventHandler SupercruiseExitHandler;
-
-        protected virtual void OnSupercruiseExit(SupercruiseExitEventArgs e)
-        {
-            EventHandler handler = SupercruiseExitHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class SupercruiseExitEventArgs : EventArgs
-        {
-            public SupercruiseExitEventArgs(JObject @event, bool firstRun)
-            {
-                SupercruiseExit = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject SupercruiseExit { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region Friends
-        internal static event EventHandler FriendsHandler;
-
-        protected virtual void OnFriends(FriendsEventArgs e)
-        {
-            EventHandler handler = FriendsHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class FriendsEventArgs : EventArgs
-        {
-            public FriendsEventArgs(JObject @event, bool firstRun)
-            {
-                Friends = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject Friends { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region LeaveBody
-        internal static event EventHandler LeaveBodyHandler;
-
-        protected virtual void OnLeaveBody(LeaveBodyEventArgs e)
-        {
-            EventHandler handler = LeaveBodyHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class LeaveBodyEventArgs : EventArgs
-        {
-            public LeaveBodyEventArgs(JObject @event, bool firstRun)
-            {
-                LeaveBody = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject LeaveBody { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region ApproachBody
-        internal static event EventHandler ApproachBodyHandler;
-
-        protected virtual void OnApproachBody(ApproachBodyEventArgs e)
-        {
-            EventHandler handler = ApproachBodyHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class ApproachBodyEventArgs : EventArgs
-        {
-            public ApproachBodyEventArgs(JObject @event, bool firstRun)
-            {
-                ApproachBody = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject ApproachBody { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region Docked
-        internal static event EventHandler DockedHandler;
-
-        protected virtual void OnDocked(DockedEventArgs e)
-        {
-            EventHandler handler = DockedHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class DockedEventArgs : EventArgs
-        {
-            public DockedEventArgs(JObject @event, bool firstRun)
-            {
-                Docked = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject Docked { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region LoadGame
-        internal static event EventHandler LoadGameHandler;
-
-        protected virtual void OnLoadGame(LoadGameEventArgs e)
-        {
-            EventHandler handler = LoadGameHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class LoadGameEventArgs : EventArgs
-        {
-            public LoadGameEventArgs(JObject @event, bool firstRun)
-            {
-                LoadGame = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject LoadGame { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region ReservoirReplenished
-        internal static event EventHandler ReservoirReplenishedHandler;
-
-        protected virtual void OnReservoirReplenished(ReservoirReplenishedEventArgs e)
-        {
-            EventHandler handler = ReservoirReplenishedHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class ReservoirReplenishedEventArgs : EventArgs
-        {
-            public ReservoirReplenishedEventArgs(JObject @event, bool firstRun)
-            {
-                ReservoirReplenished = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject ReservoirReplenished { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region Location
-        internal static event EventHandler LocationHandler;
-
-        protected virtual void OnLocation(LocationEventArgs e)
-        {
-            EventHandler handler = LocationHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class LocationEventArgs : EventArgs
-        {
-            public LocationEventArgs(JObject @event, bool firstRun)
-            {
-                Location = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject Location { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region Scan
-        internal static event EventHandler ScanHandler;
-
-        protected virtual void OnScan(ScanEventArgs e)
-        {
-            EventHandler handler = ScanHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class ScanEventArgs : EventArgs
-        {
-            public ScanEventArgs(JObject @event, bool firstRun)
-            {
-                Scan = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject Scan { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region FuelScoop
-        internal static event EventHandler FuelScoopHandler;
-
-        protected virtual void OnFuelScoop(FuelScoopEventArgs e)
-        {
-            EventHandler handler = FuelScoopHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class FuelScoopEventArgs : EventArgs
-        {
-            public FuelScoopEventArgs(JObject @event, bool firstRun)
-            {
-                FuelScoop = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject FuelScoop { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region ShipTargeted
-        internal static event EventHandler ShipTargetedHandler;
-
-        protected virtual void OnShipTargeted(ShipTargetedEventArgs e)
-        {
-            EventHandler handler = ShipTargetedHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class ShipTargetedEventArgs : EventArgs
-        {
-            public ShipTargetedEventArgs(JObject @event, bool firstRun)
-            {
-                ShipTargeted = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject ShipTargeted { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region ScanBaryCentre
-        internal static event EventHandler ScanBaryCentreHandler;
-
-        protected virtual void OnScanBaryCentre(ScanBaryCentreEventArgs e)
-        {
-            EventHandler handler = ScanBaryCentreHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class ScanBaryCentreEventArgs : EventArgs
-        {
-            public ScanBaryCentreEventArgs(JObject @event, bool firstRun)
-            {
-                ScanBaryCentre = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject ScanBaryCentre { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region JetConeBoost
-        internal static event EventHandler JetConeBoostHandler;
-
-        protected virtual void OnJetConeBoost(JetConeBoostEventArgs e)
-        {
-            EventHandler handler = JetConeBoostHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class JetConeBoostEventArgs : EventArgs
-        {
-            public JetConeBoostEventArgs(JObject @event, bool firstRun)
-            {
-                JetConeBoost = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject JetConeBoost { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region WingInvite
-        internal static event EventHandler WingInviteHandler;
-
-        protected virtual void OnWingInvite(WingInviteEventArgs e)
-        {
-            EventHandler handler = WingInviteHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class WingInviteEventArgs : EventArgs
-        {
-            public WingInviteEventArgs(JObject @event, bool firstRun)
-            {
-                WingInvite = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject WingInvite { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region WingAdd
-        internal static event EventHandler WingAddHandler;
-
-        protected virtual void OnWingAdd(WingAddEventArgs e)
-        {
-            EventHandler handler = WingAddHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class WingAddEventArgs : EventArgs
-        {
-            public WingAddEventArgs(JObject @event, bool firstRun)
-            {
-                WingAdd = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject WingAdd { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region WingLeave
-        internal static event EventHandler WingLeaveHandler;
-
-        protected virtual void OnWingLeave(WingLeaveEventArgs e)
-        {
-            EventHandler handler = WingLeaveHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class WingLeaveEventArgs : EventArgs
-        {
-            public WingLeaveEventArgs(JObject @event, bool firstRun)
-            {
-                WingLeave = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject WingLeave { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region WingJoin
-        internal static event EventHandler WingJoinHandler;
-
-        protected virtual void OnWingJoin(WingJoinEventArgs e)
-        {
-            EventHandler handler = WingJoinHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class WingJoinEventArgs : EventArgs
-        {
-            public WingJoinEventArgs(JObject @event, bool firstRun)
-            {
-                WingJoin = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject WingJoin { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region RepairDrone
-        internal static event EventHandler RepairDroneHandler;
-
-        protected virtual void OnRepairDrone(RepairDroneEventArgs e)
-        {
-            EventHandler handler = RepairDroneHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class RepairDroneEventArgs : EventArgs
-        {
-            public RepairDroneEventArgs(JObject @event, bool firstRun)
-            {
-                RepairDrone = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject RepairDrone { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region SellDrones
-        internal static event EventHandler SellDronesHandler;
-
-        protected virtual void OnSellDrones(SellDronesEventArgs e)
-        {
-            EventHandler handler = SellDronesHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class SellDronesEventArgs : EventArgs
-        {
-            public SellDronesEventArgs(JObject @event, bool firstRun)
-            {
-                SellDrones = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject SellDrones { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region BuyDrones
-        internal static event EventHandler BuyDronesHandler;
-
-        protected virtual void OnBuyDrones(BuyDronesEventArgs e)
-        {
-            EventHandler handler = BuyDronesHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class BuyDronesEventArgs : EventArgs
-        {
-            public BuyDronesEventArgs(JObject @event, bool firstRun)
-            {
-                BuyDrones = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject BuyDrones { get; private set; }
-            public bool FirstRun { get; private set; }
-        }
-        #endregion
-
-        #region CockpitBreached
-        internal static event EventHandler CockpitBreachedHandler;
-
-        protected virtual void OnCockpitBreached(CockpitBreachedEventArgs e)
-        {
-            EventHandler handler = CockpitBreachedHandler;
-            handler?.Invoke(this, e);
-        }
-
-        internal class CockpitBreachedEventArgs : EventArgs
-        {
-            public CockpitBreachedEventArgs(JObject @event, bool firstRun)
-            {
-                CockpitBreached = @event;
-                this.FirstRun = firstRun;
-            }
-
-            public JObject CockpitBreached { get; private set; }
             public bool FirstRun { get; private set; }
         }
         #endregion

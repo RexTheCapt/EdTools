@@ -1,4 +1,4 @@
-﻿namespace EdTools
+﻿namespace RoutePlotter
 {
     partial class FormMain
     {
