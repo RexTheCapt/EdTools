@@ -1,0 +1,37 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Version 17
+VisualStudioVersion = 17.1.31911.260
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "RoutePlotter", "RoutePlotter.csproj", "{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Debug|x64 = Debug|x64
+		Debug|x86 = Debug|x86
+		Release|Any CPU = Release|Any CPU
+		Release|x64 = Release|x64
+		Release|x86 = Release|x86
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Debug|x64.ActiveCfg = Debug|x64
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Debug|x64.Build.0 = Debug|x64
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Debug|x86.ActiveCfg = Debug|x86
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Debug|x86.Build.0 = Debug|x86
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Release|x64.ActiveCfg = Release|x64
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Release|x64.Build.0 = Release|x64
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Release|x86.ActiveCfg = Release|x86
+		{BDA039EE-22FE-4FB7-B8B1-953DCE3516FF}.Release|x86.Build.0 = Release|x86
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+		SolutionGuid = {6169E7AD-29E7-4545-90ED-BA2A2FEF292D}
+	EndGlobalSection
+EndGlobal
