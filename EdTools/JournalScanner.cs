@@ -283,7 +283,7 @@ namespace EdTools
                                             break;
                                         #endregion
                                         default:
-                                            Console.WriteLine($"Unknown event: {eventType}");
+                                            OnUnknown(new UnknownEventArgs(@event: @event, FirstRun));
                                             break;
                                     }
                                     LastEventTime = currentEventDateTime;
@@ -299,6 +299,27 @@ namespace EdTools
         }
 
         #region Events
+        #region UnknownEvent
+        public static event EventHandler UnknownEventHandler;
+
+        protected virtual void OnUnknown(UnknownEventArgs e)
+        {
+            EventHandler handler = UnknownEventHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class UnknownEventArgs : EventArgs
+        {
+            public UnknownEventArgs(JObject @event, bool firstRun)
+            {
+                UnknownEvent = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject UnknownEvent { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
         #region CockpitBreached
         public static event EventHandler CockpitBreachedHandler;
 
