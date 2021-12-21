@@ -18,6 +18,7 @@ namespace RoutePlotter
         private string _currentStarSystem;
 
         internal JournalScanner JournalScanner { get; private set; }
+        internal string _ranUpdateInSystem = "";
 
         public string CurrentStarSystem
         {
@@ -25,6 +26,7 @@ namespace RoutePlotter
             private set
             {
                 _currentStarSystem = value;
+                textBoxCurrentSystem.Text = _currentStarSystem;
 
                 if (JournalScanner != null && !JournalScanner.FirstRun)
                 {
@@ -66,11 +68,28 @@ namespace RoutePlotter
             _timerJournalScanner.Interval = 100;
             _timerJournalScanner.Tick += JournalScanner.TimerScan;
             _timerJournalScanner.Enabled = true;
+
+            listView1.DoubleClick += ListView1_DoubleClick;
         }
-        
+
+        private void ListView1_DoubleClick(object? sender, EventArgs e)
+        {
+            if (listView1.SelectedItems.Count == 1)
+            {
+                ListViewItem listViewItem = listView1.SelectedItems[0];
+                JObject tag = (JObject)listViewItem.Tag;
+                Clipboard.SetText(tag.Value<string>("system"));
+            }
+        }
+
         private void UpdateTravelPath()
         {
-            throw new NotImplementedException();
+            if (string.IsNullOrEmpty(textBoxTargetSystem.Text) || string.IsNullOrWhiteSpace(textBoxTargetSystem.Text) || _ranUpdateInSystem.Equals(CurrentStarSystem))
+                return;
+
+            ButtonStartRoute_Click(this, new EventArgs());
+
+            _ranUpdateInSystem = CurrentStarSystem;
         }
 
         #region events
@@ -121,6 +140,20 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * StarSystem
+                     * SystemAddress
+                     * BodyID
+                     * SemiMajorAxis
+                     * Eccentricity
+                     * OrbitalInclination
+                     * Periapsis
+                     * OrbitalPeriod
+                     * AscendingNode
+                     * MeanAnomaly
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -173,6 +206,27 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * Docked
+                     * StarSystem
+                     * SystemAddress
+                     * StarPos
+                     * SystemAllegiance
+                     * SystemEconomy
+                     * SystemEconomy_Localised
+                     * SystemSecondEconomy
+                     * SystemSecondEconomy_Localised
+                     * SystemGovernment
+                     * SystemGovernment_Localised
+                     * SystemSecurity
+                     * SystemSecurity_Localised
+                     * Population
+                     * Body
+                     * BodyID
+                     * BodyType
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -264,6 +318,12 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * StarSystem
+                     * SystemAddress
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -271,13 +331,23 @@ namespace RoutePlotter
 
         private void JournalScanner_SupercruiseExitHandler(object? sender, EventArgs e)
         {
-
             if (e is JournalScanner.SupercruiseExitEventArgs)
             {
                 JObject j = ((JournalScanner.SupercruiseExitEventArgs)e).SupercruiseExit;
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * Taxi
+                     * Multicrew
+                     * StarSystem
+                     * SystemAddress
+                     * Body
+                     * BodyID
+                     * BodyType
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -291,6 +361,29 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * Taxi
+                     * Multicrew
+                     * StarSystem
+                     * SystemAddress
+                     * StarPos
+                     * SystemAllegiance
+                     * SystemEconomy
+                     * SystemEconomy_Localised
+                     * SystemGovernment
+                     * SystemGovernment_Localised
+                     * SystemSecurity
+                     * SystemSecurity_Localised
+                     * Population
+                     * Body
+                     * BodyID
+                     * BodyType
+                     * JumpDist
+                     * FuelUsed
+                     * FuelLevel
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -304,6 +397,19 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * ScanType
+                     * BodyName
+                     * BodyID
+                     * Parents
+                     * StarSystem
+                     * SystemAddress
+                     * DistanceFromArrivalLS
+                     * WasDiscovered
+                     * WasMapped
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -328,7 +434,7 @@ namespace RoutePlotter
             JToken jToken;
             try
             {
-                jToken = EDNeutronRouterPlugin.NeutronRouterAPI.GetNewRoute("sol", textBoxTargetSystem.Text, 70, 60);
+                jToken = NeutronRouterAPI.GetNewRoute(textBoxCurrentSystem.Text, textBoxTargetSystem.Text, numericUpDownJumpRange.Value, 60);
             }
             catch (Exception ex)
             {
@@ -344,8 +450,15 @@ namespace RoutePlotter
             }
 
             listView1.Items.Clear();
+            bool skipFirst = true;
             foreach (JObject j in jToken.Value<JArray>("system_jumps"))
             {
+                if (skipFirst)
+                {
+                    skipFirst = false;
+                    continue;
+                }
+
                 string[] subItems = new string[]
                 {
                     j.Value<string>("system"),
@@ -355,7 +468,8 @@ namespace RoutePlotter
                     j.Value<string>("neutron_star")
                 };
                 ListViewItem lvi = new ListViewItem(subItems);
-                listView1.Items.Add(lvi).Tag = j;
+                ListViewItem listViewItem = listView1.Items.Add(lvi);
+                listViewItem.Tag = j;
             }
         }
 

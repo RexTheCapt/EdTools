@@ -30,272 +30,273 @@ namespace EdTools
                     currentWriteTime = fi.LastWriteTime;
                     newest = f;
                 }
-                //}
+            }
 
-                //if (LastWriteTime != currentWriteTime)
-                {
-                    var fs = new FileStream(newest, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
-                    using (var reader = new StreamReader(fs))
-                        while (!reader.EndOfStream)
+            if (LastWriteTime != currentWriteTime)
+            {
+                var fs = new FileStream(newest, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
+                using (var reader = new StreamReader(fs))
+                    while (!reader.EndOfStream)
+                    {
+                        JObject? @event = (JObject)JsonConvert.DeserializeObject(reader.ReadLine());
+                        if (@event != null)
                         {
-                            JObject? @event = (JObject)JsonConvert.DeserializeObject(reader.ReadLine());
-                            if (@event != null)
+                            DateTime currentEventDateTime = @event.Value<DateTime>("timestamp");
+                            if (currentEventDateTime >= LastEventTime)
                             {
-                                DateTime currentEventDateTime = @event.Value<DateTime>("timestamp");
-                                if (currentEventDateTime > LastEventTime)
-                                {
-                                    string eventType = @event.Value<string>("event");
+                                string eventType = @event.Value<string>("event");
 #if DEBUG
-                                    #region Debug stuff
-                                    if (@event.Value<string>("StarSystem") != null && eventType != "Scan" && eventType != "StartJump" && eventType != "FSDJump" && eventType != "SupercruiseExit" && eventType != "SupercruiseEntry" && eventType != "ApproachBody" && eventType != "Touchdown" && eventType != "Liftoff" && eventType != "Disembark" && eventType != "Embark" && eventType != "LeaveBody" && eventType != "Location" && eventType != "Docked" && eventType != "StoredShips" && eventType != "Outfitting" && eventType != "Shipyard" && eventType != "ScanBaryCentre" && eventType != "Market" && eventType != "StoredModules" && eventType != "CarrierJump")
-                                    {
-                                        Console.WriteLine(eventType);
-                                    }
-                                    #endregion
+                                #region Debug stuff
+                                if (@event.Value<string>("StarSystem") != null && eventType != "Scan" && eventType != "StartJump" && eventType != "FSDJump" && eventType != "SupercruiseExit" && eventType != "SupercruiseEntry" && eventType != "ApproachBody" && eventType != "Touchdown" && eventType != "Liftoff" && eventType != "Disembark" && eventType != "Embark" && eventType != "LeaveBody" && eventType != "Location" && eventType != "Docked" && eventType != "StoredShips" && eventType != "Outfitting" && eventType != "Shipyard" && eventType != "ScanBaryCentre" && eventType != "Market" && eventType != "StoredModules" && eventType != "CarrierJump")
+                                {
+                                    Console.WriteLine(eventType);
+                                }
+                                #endregion
 #endif
 
-                                    switch (eventType)
-                                    {
-                                        case "Loadout":
-                                            OnLoadout(new LoadoutEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "SupercruiseEntry":
-                                            OnSupercruiseEntry(new SupercruiseEntryEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "FSDJump":
-                                            OnFSDJump(new FSDJumpEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "SupercruiseExit":
-                                            OnSupercruiseExit(new SupercruiseExitEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Friends":
-                                            OnFriends(new FriendsEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "LeaveBody":
-                                            OnLeaveBody(new LeaveBodyEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "ApproachBody":
-                                            OnApproachBody(new ApproachBodyEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Docked":
-                                            OnDocked(new DockedEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "ReservoirReplenished":
-                                            OnReservoirReplenished(new ReservoirReplenishedEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "LoadGame":
-                                            OnLoadGame(new LoadGameEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Location":
-                                            OnLocation(new LocationEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Scan":
-                                            OnScan(new ScanEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "FuelScoop":
-                                            OnFuelScoop(new FuelScoopEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "ShipTargeted":
-                                            OnShipTargeted(new ShipTargetedEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "ScanBaryCentre":
-                                            OnScanBaryCentre(new ScanBaryCentreEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "JetConeBoost":
-                                            OnJetConeBoost(new JetConeBoostEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "WingInvite":
-                                            OnWingInvite(new WingInviteEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "WingAdd":
-                                            OnWingAdd(new WingAddEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "WingLeave":
-                                            OnWingLeave(new WingLeaveEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "WingJoin":
-                                            OnWingJoin(new WingJoinEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "RepairDrone":
-                                            OnRepairDrone(new RepairDroneEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "SellDrones":
-                                            OnSellDrones(new SellDronesEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "BuyDrones":
-                                            OnBuyDrones(new BuyDronesEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "CockpitBreached":
-                                            OnCockpitBreached(new CockpitBreachedEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Touchdown":
-                                            OnTouchdown(new TouchdownEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Liftoff":
-                                            OnLiftoff(new LiftoffEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Disembark":
-                                            OnDisembark(new DisembarkEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Embark":
-                                            OnEmbark(new EmbarkEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "StoredShips":
-                                            OnStoredShips(new StoredShipsEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Outfitting":
-                                            OnOutfitting(new OutfittingEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Shipyard":
-                                            OnShipyard(new ShipyardEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "Market":
-                                            OnMarket(new MarketEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "StoredModules":
-                                            OnStoredModules(new StoredModulesEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        case "CarrierJump":
-                                            OnCarrierJump(new CarrierJumpEventArgs(@event: @event, FirstRun));
-                                            break;
-                                        #region unused events
-                                        case "UseConsumable":
-                                        case "UpgradeWeapon":
-                                        case "ShipyardNew":
-                                        case "BuyWeapon":
-                                        case "SellMicroResources":
-                                        case "TradeMicroResources":
-                                        case "BuySuit":
-                                        case "LeftSquadron":
-                                        case "CommunityGoalReward":
-                                        case "CrewLaunchFighter":
-                                        case "BookTaxi":
-                                        case "ShipyardBuy":
-                                        case "DeleteSuitLoadout":
-                                        case "PayFines":
-                                        case "CommunityGoalJoin":
-                                        case "AppliedToSquadron":
-                                        case "ModuleSell":
-                                        case "ModuleSwap":
-                                        case "SetUserShipName":
-                                        case "SelfDestruct":
-                                        case "ShipyardSell":
-                                        case "MissionAbandoned":
-                                        case "Died":
-                                        case "FetchRemoteModule":
-                                        case "VehicleSwitch":
-                                        case "DataScanned":
-                                        case "SquadronStartup":
-                                        case "RestockVehicle":
-                                        case "LaunchSRV":
-                                        case "Interdiction":
-                                        case "CrimeVictim":
-                                        case "MaterialDiscovered":
-                                        case "EscapeInterdiction":
-                                        case "SwitchSuitLoadout":
-                                        case "CrewAssign":
-                                        case "BuyMicroResources":
-                                        case "ProspectedAsteroid":
-                                        case "CodexEntry":
-                                        case "Interdicted":
-                                        case "ShipyardTransfer":
-                                        case "BackpackChange":
-                                        case "RebootRepair":
-                                        case "MultiSellExplorationData":
-                                        case "JetConeDamage":
-                                        case "USSDrop":
-                                        case "CollectCargo":
-                                        case "MaterialTrade":
-                                        case "CargoTransfer":
-                                        case "FactionKillBond":
-                                        case "DockFighter":
-                                        case "CommitCrime":
-                                        case "CollectItems":
-                                        case "DockSRV":
-                                        case "Resurrect":
-                                        case "HeatDamage":
-                                        case "ApproachSettlement":
-                                        case "Synthesis":
-                                        case "FighterDestroyed":
-                                        case "SAASignalsFound":
-                                        case "MissionCompleted":
-                                        case "Backpack":
-                                        case "ModuleStore":
-                                        case "SAAScanComplete":
-                                        case "ModuleSellRemote":
-                                        case "ModuleRetrieve":
-                                        case "MissionFailed":
-                                        case "MarketSell":
-                                        case "ModuleBuy":
-                                        case "RedeemVoucher":
-                                        case "MissionRedirected":
-                                        case "Repair":
-                                        case "FighterRebuilt":
-                                        case "EngineerCraft":
-                                        case "ShieldState":
-                                        case "EjectCargo":
-                                        case "AfmuRepairs":
-                                        case "RefuelAll":
-                                        case "LaunchDrone":
-                                        case "Bounty":
-                                        case "SuitLoadout":
-                                        case "Scanned":
-                                        case "BuyAmmo":
-                                        case "LaunchFighter":
-                                        case "UnderAttack":
-                                        case "FSSAllBodiesFound":
-                                        case "FSSBodySignals":
-                                        case "HeatWarning":
-                                        case "NavRoute":
-                                        case "MaterialCollected":
-                                        case "ShipLocker":
-                                        case "FSSDiscoveryScan":
-                                        case "SendText":
-                                        case "FSDTarget":
-                                        case "ModuleInfo":
-                                        case "Progress":
-                                        case "Commander":
-                                        case "Missions":
-                                        case "Materials":
-                                        case "MarketBuy":
-                                        case "Fileheader":
-                                        case "Rank":
-                                        case "Shutdown":
-                                        case "EngineerProgress":
-                                        case "ShipyardSwap":
-                                        case "CommunityGoal":
-                                        case "DockingDenied":
-                                        case "MissionAccepted":
-                                        case "Cargo":
-                                        case "Reputation":
-                                        case "DockingGranted":
-                                        case "Statistics":
-                                        case "FSSSignalDiscovered":
-                                        case "RepairAll":
-                                        case "NpcCrewPaidWage":
-                                        case "CargoDepot":
-                                        case "Undocked":
-                                        case "ReceiveText":
-                                        case "Music":
-                                        case "DockingRequested":
-                                        case "HullDamage":
-                                        case "StartJump":
-                                            break;
-                                        #endregion
-                                        default:
-                                            OnUnknown(new UnknownEventArgs(@event: @event, FirstRun));
-                                            break;
-                                    }
-                                    LastEventTime = currentEventDateTime;
+                                switch (eventType)
+                                {
+                                    case "Loadout":
+                                        OnLoadout(new LoadoutEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "SupercruiseEntry":
+                                        OnSupercruiseEntry(new SupercruiseEntryEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "FSDJump":
+                                        OnFSDJump(new FSDJumpEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "SupercruiseExit":
+                                        OnSupercruiseExit(new SupercruiseExitEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Friends":
+                                        OnFriends(new FriendsEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "LeaveBody":
+                                        OnLeaveBody(new LeaveBodyEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "ApproachBody":
+                                        OnApproachBody(new ApproachBodyEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Docked":
+                                        OnDocked(new DockedEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "ReservoirReplenished":
+                                        OnReservoirReplenished(new ReservoirReplenishedEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "LoadGame":
+                                        OnLoadGame(new LoadGameEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Location":
+                                        OnLocation(new LocationEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Scan":
+                                        OnScan(new ScanEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "FuelScoop":
+                                        OnFuelScoop(new FuelScoopEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "ShipTargeted":
+                                        OnShipTargeted(new ShipTargetedEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "ScanBaryCentre":
+                                        OnScanBaryCentre(new ScanBaryCentreEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "JetConeBoost":
+                                        OnJetConeBoost(new JetConeBoostEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "WingInvite":
+                                        OnWingInvite(new WingInviteEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "WingAdd":
+                                        OnWingAdd(new WingAddEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "WingLeave":
+                                        OnWingLeave(new WingLeaveEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "WingJoin":
+                                        OnWingJoin(new WingJoinEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "RepairDrone":
+                                        OnRepairDrone(new RepairDroneEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "SellDrones":
+                                        OnSellDrones(new SellDronesEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "BuyDrones":
+                                        OnBuyDrones(new BuyDronesEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "CockpitBreached":
+                                        OnCockpitBreached(new CockpitBreachedEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Touchdown":
+                                        OnTouchdown(new TouchdownEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Liftoff":
+                                        OnLiftoff(new LiftoffEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Disembark":
+                                        OnDisembark(new DisembarkEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Embark":
+                                        OnEmbark(new EmbarkEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "StoredShips":
+                                        OnStoredShips(new StoredShipsEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Outfitting":
+                                        OnOutfitting(new OutfittingEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Shipyard":
+                                        OnShipyard(new ShipyardEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "Market":
+                                        OnMarket(new MarketEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "StoredModules":
+                                        OnStoredModules(new StoredModulesEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "CarrierJump":
+                                        OnCarrierJump(new CarrierJumpEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    #region unused events
+                                    case "UseConsumable":
+                                    case "UpgradeWeapon":
+                                    case "ShipyardNew":
+                                    case "BuyWeapon":
+                                    case "SellMicroResources":
+                                    case "TradeMicroResources":
+                                    case "BuySuit":
+                                    case "LeftSquadron":
+                                    case "CommunityGoalReward":
+                                    case "CrewLaunchFighter":
+                                    case "BookTaxi":
+                                    case "ShipyardBuy":
+                                    case "DeleteSuitLoadout":
+                                    case "PayFines":
+                                    case "CommunityGoalJoin":
+                                    case "AppliedToSquadron":
+                                    case "ModuleSell":
+                                    case "ModuleSwap":
+                                    case "SetUserShipName":
+                                    case "SelfDestruct":
+                                    case "ShipyardSell":
+                                    case "MissionAbandoned":
+                                    case "Died":
+                                    case "FetchRemoteModule":
+                                    case "VehicleSwitch":
+                                    case "DataScanned":
+                                    case "SquadronStartup":
+                                    case "RestockVehicle":
+                                    case "LaunchSRV":
+                                    case "Interdiction":
+                                    case "CrimeVictim":
+                                    case "MaterialDiscovered":
+                                    case "EscapeInterdiction":
+                                    case "SwitchSuitLoadout":
+                                    case "CrewAssign":
+                                    case "BuyMicroResources":
+                                    case "ProspectedAsteroid":
+                                    case "CodexEntry":
+                                    case "Interdicted":
+                                    case "ShipyardTransfer":
+                                    case "BackpackChange":
+                                    case "RebootRepair":
+                                    case "MultiSellExplorationData":
+                                    case "JetConeDamage":
+                                    case "USSDrop":
+                                    case "CollectCargo":
+                                    case "MaterialTrade":
+                                    case "CargoTransfer":
+                                    case "FactionKillBond":
+                                    case "DockFighter":
+                                    case "CommitCrime":
+                                    case "CollectItems":
+                                    case "DockSRV":
+                                    case "Resurrect":
+                                    case "HeatDamage":
+                                    case "ApproachSettlement":
+                                    case "Synthesis":
+                                    case "FighterDestroyed":
+                                    case "SAASignalsFound":
+                                    case "MissionCompleted":
+                                    case "Backpack":
+                                    case "ModuleStore":
+                                    case "SAAScanComplete":
+                                    case "ModuleSellRemote":
+                                    case "ModuleRetrieve":
+                                    case "MissionFailed":
+                                    case "MarketSell":
+                                    case "ModuleBuy":
+                                    case "RedeemVoucher":
+                                    case "MissionRedirected":
+                                    case "Repair":
+                                    case "FighterRebuilt":
+                                    case "EngineerCraft":
+                                    case "ShieldState":
+                                    case "EjectCargo":
+                                    case "AfmuRepairs":
+                                    case "RefuelAll":
+                                    case "LaunchDrone":
+                                    case "Bounty":
+                                    case "SuitLoadout":
+                                    case "Scanned":
+                                    case "BuyAmmo":
+                                    case "LaunchFighter":
+                                    case "UnderAttack":
+                                    case "FSSAllBodiesFound":
+                                    case "FSSBodySignals":
+                                    case "HeatWarning":
+                                    case "NavRoute":
+                                    case "MaterialCollected":
+                                    case "ShipLocker":
+                                    case "FSSDiscoveryScan":
+                                    case "SendText":
+                                    case "FSDTarget":
+                                    case "ModuleInfo":
+                                    case "Progress":
+                                    case "Commander":
+                                    case "Missions":
+                                    case "Materials":
+                                    case "MarketBuy":
+                                    case "Fileheader":
+                                    case "Rank":
+                                    case "Shutdown":
+                                    case "EngineerProgress":
+                                    case "ShipyardSwap":
+                                    case "CommunityGoal":
+                                    case "DockingDenied":
+                                    case "MissionAccepted":
+                                    case "Cargo":
+                                    case "Reputation":
+                                    case "DockingGranted":
+                                    case "Statistics":
+                                    case "FSSSignalDiscovered":
+                                    case "RepairAll":
+                                    case "NpcCrewPaidWage":
+                                    case "CargoDepot":
+                                    case "Undocked":
+                                    case "ReceiveText":
+                                    case "Music":
+                                    case "DockingRequested":
+                                    case "HullDamage":
+                                    case "StartJump":
+                                        break;
+                                    #endregion
+                                    default:
+                                        OnUnknown(new UnknownEventArgs(@event: @event, FirstRun));
+                                        break;
                                 }
+                                LastEventTime = currentEventDateTime;
                             }
                         }
+                    }
+                LastEventTime.AddMilliseconds(1);
 
-                    LastWriteTime = currentWriteTime;
-                }
-
-                FirstRun = false;
+                LastWriteTime = currentWriteTime;
             }
+
+            FirstRun = false;
+            //}
         }
 
         #region Events

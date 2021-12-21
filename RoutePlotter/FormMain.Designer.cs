@@ -41,11 +41,14 @@
             this.textBoxCurrentSystem = new System.Windows.Forms.TextBox();
             this.textBoxClientName = new System.Windows.Forms.TextBox();
             this.label3 = new System.Windows.Forms.Label();
+            this.numericUpDownJumpRange = new System.Windows.Forms.NumericUpDown();
+            this.label4 = new System.Windows.Forms.Label();
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownJumpRange)).BeginInit();
             this.SuspendLayout();
             // 
             // textBoxTargetSystem
             // 
-            this.textBoxTargetSystem.Location = new System.Drawing.Point(101, 70);
+            this.textBoxTargetSystem.Location = new System.Drawing.Point(101, 99);
             this.textBoxTargetSystem.Name = "textBoxTargetSystem";
             this.textBoxTargetSystem.Size = new System.Drawing.Size(225, 23);
             this.textBoxTargetSystem.TabIndex = 0;
@@ -53,7 +56,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(13, 73);
+            this.label1.Location = new System.Drawing.Point(13, 102);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(82, 15);
             this.label1.TabIndex = 1;
@@ -61,7 +64,7 @@
             // 
             // buttonStartRoute
             // 
-            this.buttonStartRoute.Location = new System.Drawing.Point(332, 70);
+            this.buttonStartRoute.Location = new System.Drawing.Point(332, 99);
             this.buttonStartRoute.Name = "buttonStartRoute";
             this.buttonStartRoute.Size = new System.Drawing.Size(75, 23);
             this.buttonStartRoute.TabIndex = 2;
@@ -79,10 +82,9 @@
             this.columnHeaderNeutron});
             this.listView1.FullRowSelect = true;
             this.listView1.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.listView1.HideSelection = false;
-            this.listView1.Location = new System.Drawing.Point(13, 99);
+            this.listView1.Location = new System.Drawing.Point(13, 128);
             this.listView1.Name = "listView1";
-            this.listView1.Size = new System.Drawing.Size(394, 348);
+            this.listView1.Size = new System.Drawing.Size(394, 319);
             this.listView1.TabIndex = 3;
             this.listView1.UseCompatibleStateImageBehavior = false;
             this.listView1.View = System.Windows.Forms.View.Details;
@@ -113,9 +115,9 @@
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(13, 15);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(47, 15);
+            this.label2.Size = new System.Drawing.Size(66, 15);
             this.label2.TabIndex = 4;
-            this.label2.Text = "Current";
+            this.label2.Text = "Current sys";
             // 
             // textBoxCurrentSystem
             // 
@@ -127,7 +129,7 @@
             // 
             // textBoxClientName
             // 
-            this.textBoxClientName.Location = new System.Drawing.Point(101, 41);
+            this.textBoxClientName.Location = new System.Drawing.Point(101, 70);
             this.textBoxClientName.Name = "textBoxClientName";
             this.textBoxClientName.Size = new System.Drawing.Size(225, 23);
             this.textBoxClientName.TabIndex = 6;
@@ -135,17 +137,51 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(13, 44);
+            this.label3.Location = new System.Drawing.Point(13, 73);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(38, 15);
             this.label3.TabIndex = 7;
             this.label3.Text = "Client";
+            // 
+            // numericUpDownJumpRange
+            // 
+            this.numericUpDownJumpRange.DecimalPlaces = 2;
+            this.numericUpDownJumpRange.Location = new System.Drawing.Point(101, 41);
+            this.numericUpDownJumpRange.Maximum = new decimal(new int[] {
+            500,
+            0,
+            0,
+            0});
+            this.numericUpDownJumpRange.Minimum = new decimal(new int[] {
+            5,
+            0,
+            0,
+            0});
+            this.numericUpDownJumpRange.Name = "numericUpDownJumpRange";
+            this.numericUpDownJumpRange.Size = new System.Drawing.Size(225, 23);
+            this.numericUpDownJumpRange.TabIndex = 8;
+            this.numericUpDownJumpRange.Value = new decimal(new int[] {
+            10,
+            0,
+            0,
+            0});
+            // 
+            // label4
+            // 
+            this.label4.AutoSize = true;
+            this.label4.Location = new System.Drawing.Point(13, 43);
+            this.label4.Name = "label4";
+            this.label4.Size = new System.Drawing.Size(80, 15);
+            this.label4.TabIndex = 9;
+            this.label4.Text = "Current range";
             // 
             // FormMain
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(418, 465);
+            this.Controls.Add(this.label4);
+            this.Controls.Add(this.numericUpDownJumpRange);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.textBoxClientName);
             this.Controls.Add(this.textBoxCurrentSystem);
@@ -156,6 +192,7 @@
             this.Controls.Add(this.textBoxTargetSystem);
             this.Name = "FormMain";
             this.Text = "Route Plotter";
+            ((System.ComponentModel.ISupportInitialize)(this.numericUpDownJumpRange)).EndInit();
             this.ResumeLayout(false);
             this.PerformLayout();
 
@@ -176,5 +213,7 @@
         private System.Windows.Forms.TextBox textBoxCurrentSystem;
         private System.Windows.Forms.TextBox textBoxClientName;
         private System.Windows.Forms.Label label3;
+        private System.Windows.Forms.NumericUpDown numericUpDownJumpRange;
+        private System.Windows.Forms.Label label4;
     }
 }
