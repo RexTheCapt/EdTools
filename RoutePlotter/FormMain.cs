@@ -7,6 +7,7 @@ using EDNeutronRouterPlugin;
 using Newtonsoft.Json.Linq;
 
 using EdTools;
+using System.Drawing;
 
 namespace RoutePlotter
 {
@@ -16,6 +17,7 @@ namespace RoutePlotter
 
         private Timer _timerJournalScanner;
         private string _currentStarSystem;
+        private readonly Timer _delayedUpdate;
 
         internal JournalScanner JournalScanner { get; private set; }
         internal string _ranUpdateInSystem = "";
@@ -27,6 +29,9 @@ namespace RoutePlotter
             {
                 _currentStarSystem = value;
                 textBoxCurrentSystem.Text = _currentStarSystem;
+
+                if (!_currentStarSystem.Equals(value, StringComparison.OrdinalIgnoreCase))
+                    textBoxCurrentSystem.BackColor = Color.FromName("Control");
 
                 if (JournalScanner != null && !JournalScanner.FirstRun)
                 {
@@ -42,7 +47,7 @@ namespace RoutePlotter
             #region Setup journal scanner
             JournalScanner = new JournalScanner(JournalPath);
 
-            _currentStarSystem = CurrentStarSystem = "[UNKNOWN]";
+            CurrentStarSystem = CurrentStarSystem = "[UNKNOWN]";
             JournalScanner.DockedHandler += JournalScanner_DockedHandler;
             JournalScanner.ScanHandler += JournalScanner_ScanHandler;
             JournalScanner.FSDJumpHandler += JournalScanner_FSDJumpHandler;
@@ -69,7 +74,17 @@ namespace RoutePlotter
             _timerJournalScanner.Tick += JournalScanner.TimerScan;
             _timerJournalScanner.Enabled = true;
 
+            _delayedUpdate = new Timer();
+            _delayedUpdate.Tick += DelayedUpdateTick;
+            _delayedUpdate.Enabled = false;
+            _delayedUpdate.Interval = 1000;
+
             listView1.DoubleClick += ListView1_DoubleClick;
+        }
+
+        private void DelayedUpdateTick(object? sender, EventArgs e)
+        {
+            ButtonStartRoute_Click(sender, e);
         }
 
         private void ListView1_DoubleClick(object? sender, EventArgs e)
@@ -114,6 +129,14 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * MarketID
+                     * StationName
+                     * StarSystem
+                     * Items
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -167,6 +190,13 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * MarketID
+                     * StationName
+                     * StarSystem
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -180,6 +210,13 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * MarketID
+                     * StationName
+                     * StarSystem
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -193,6 +230,15 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * StationName
+                     * MarketID
+                     * StarSystem
+                     * ShipsHere
+                     * ShipsRemote
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -423,6 +469,27 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * StationName
+                     * StationType
+                     * Taxi
+                     * Multicrew
+                     * StarSystem
+                     * SystemAddress
+                     * MarketID
+                     * StationFaction
+                     * StationGovernment
+                     * StationGovernment_Localised
+                     * StationAllegiance
+                     * StationServices
+                     * StationEconomy
+                     * StationEconomy_Localised
+                     * StationEconomies
+                     * DistFromStarLS
+                     * LandingPads
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
@@ -431,18 +498,28 @@ namespace RoutePlotter
 
         private void ButtonStartRoute_Click(object sender, EventArgs e)
         {
+            _delayedUpdate.Enabled = false;
             JToken jToken;
             try
             {
                 jToken = NeutronRouterAPI.GetNewRoute(textBoxCurrentSystem.Text, textBoxTargetSystem.Text, numericUpDownJumpRange.Value, 60);
+
+                if (textBoxCurrentSystem.BackColor == Color.Red)
+                    textBoxCurrentSystem.BackColor = Color.Orange;
             }
             catch (Exception ex)
             {
                 Type t = ex.GetType();
 
-                if (t == typeof(InvalidSystemException))
+                if (t == typeof(InvalidEndSystemException))
                 {
                     MessageBox.Show("Invalid system", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+                else if (t == typeof(InvalidStartSystemException))
+                {
+                    textBoxCurrentSystem.BackColor = Color.Red;
+                    _delayedUpdate.Enabled = true;
                     return;
                 }
                 else
@@ -451,8 +528,12 @@ namespace RoutePlotter
 
             listView1.Items.Clear();
             bool skipFirst = true;
+            bool copySecond = true;
+            uint totalJumps = 0;
             foreach (JObject j in jToken.Value<JArray>("system_jumps"))
             {
+                totalJumps += j.Value<uint>("jumps");
+
                 if (skipFirst)
                 {
                     skipFirst = false;
@@ -467,10 +548,18 @@ namespace RoutePlotter
                     j.Value<string>("jumps"),
                     j.Value<string>("neutron_star")
                 };
+
+                if (copySecond)
+                {
+                    Clipboard.SetText(subItems[0]);
+                    copySecond = false;
+                }
+
                 ListViewItem lvi = new ListViewItem(subItems);
                 ListViewItem listViewItem = listView1.Items.Add(lvi);
                 listViewItem.Tag = j;
             }
+            this.Text = $"Route Plotter | {totalJumps} jumps left";
         }
 
         private string MakeNumberSmaller(decimal v)

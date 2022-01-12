@@ -36,7 +36,11 @@ namespace EDNeutronRouterPlugin
                 string err = routeResponse.Value<string>("error");
                 if (err.Equals("Could not find finishing system"))
                 {
-                    throw new InvalidSystemException();
+                    throw new InvalidEndSystemException();
+                }
+                else if (err.Equals("Could not find starting system"))
+                {
+                    throw new InvalidStartSystemException(currentSystem);
                 }
                 throw new Exception(routeResponse["error"]?.ToString());
             }

@@ -105,6 +105,7 @@
             // columnHeaderJumps
             // 
             this.columnHeaderJumps.Text = "Jumps";
+            this.columnHeaderJumps.Width = 80;
             // 
             // columnHeaderNeutron
             // 
