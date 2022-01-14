@@ -8,6 +8,8 @@ using CSharpDiscordWebhook.NET.Discord;
 
 using EdTools;
 
+using WebhookTest.Exceptions;
+
 namespace WebhookTest
 {
     internal class Program
@@ -16,11 +18,14 @@ namespace WebhookTest
         internal static JournalScanner scanner;
         internal static List<DiscordMessage> messageQueue = new List<DiscordMessage>();
         internal static string? carrierName = null;
-        internal static EmbedAuthor embedAuthorCarrier;
+        internal static string carrierID = "3706547712";
         internal static EmbedFooter embedFooterJournal;
+        internal static bool eventMsg = false;
 
         internal static async Task Main()
         {
+            Console.Title = "Carrier Announcer";
+
             #region setup journal
             scanner = new EdTools.JournalScanner(@"C:\Users\user\Saved Games\Frontier Developments\Elite Dangerous");
             JournalScanner.CarrierJumpRequestHandler += JournalScanner_CarrierJumpRequestHandler;
@@ -71,11 +76,6 @@ namespace WebhookTest
             };
 
             #region setup embeds
-            embedAuthorCarrier = new EmbedAuthor()
-            {
-                Name = carrierName ?? "Carrier Announcer"
-            };
-
             embedFooterJournal = new EmbedFooter()
             {
                 Text = "From journal"
@@ -98,40 +98,49 @@ namespace WebhookTest
                         if (string.IsNullOrEmpty(read) || string.IsNullOrWhiteSpace(read))
                             continue;
 
-                        DiscordMessage message = new DiscordMessage();
+                        DiscordMessage message = new DiscordMessage()
+                        {
+                            AvatarUrl = @"https://cdn.discordapp.com/attachments/295942440668495873/931611914042228746/Untitled-1.PNG",
+                            //AvatarUrl = @"https://cdn.discordapp.com/attachments/930896737688760330/931589138111680592/Untitled-8.PNG",
+                            //Username = "Captain (QBZ-T4J)"
+                            Username = "Captain B. McCrea",
+                            //Content = read
+                        };
                         DiscordEmbed embed = new DiscordEmbed()
                         {
-                            Author = new EmbedAuthor()
-                            {
-                                IconUrl = @"https://cdn.discordapp.com/avatars/272411566111064074/a4e4fc367c7f5de6cdb0b3ca3d2beaba.webp",
-                                Name = "CMDR RexTheCapt",
-                                Url = @"https://discord.gg/jUdRUWK"
-                            },
                             Color = System.Drawing.Color.Beige,
-                            Description = "Message from the CMDR",
                             Fields =
                             {
                                 new EmbedField()
                                 {
                                     InLine = true,
-                                    Name = "Message",
+                                    Name = "Message from the captain",
                                     Value = read
                                 }
                             },
                             Footer = new EmbedFooter()
                             {
-                                Text = "Message from CMDR"
+                                Text = "Direct"
                             },
                             Timestamp = DateTime.Now,
-                            Title = "Message from CMDR"
                         };
                         message.Embeds.Add(embed);
                         messageQueue.Add(message);
+                        Console.WriteLine();
                     }
                 }
 
-                Console.WriteLine($"Scanning {DateTime.Now}");
-                scanner.TimerScan(null, new EventArgs());
+                if (eventMsg)
+                {
+                    Console.WriteLine();
+                    eventMsg = false;
+                }
+
+                if (Console.CursorTop != 0)
+                    Console.CursorTop--;
+
+                Console.Write($"{DateTime.Now}\n");
+                scanner.TimerScan(sendEventsOnFirstRun: false);
 
                 if (messageQueue.Count > 0)
                 {
@@ -166,11 +175,16 @@ namespace WebhookTest
         private static void JournalScanner_CarrierJumpCancelledHandler(object? sender, EventArgs e)
         {
             JournalScanner.CarrierJumpCancelledEventArgs eArgs = (JournalScanner.CarrierJumpCancelledEventArgs)e;
+            string? cid = eArgs.CarrierJumpCancelled.Value<string>("CarrierID");
+            
+            if (cid == null && !cid.Equals(carrierID))
+                return;
+            
+            eventMsg = true;
             Console.WriteLine("Jump cancelled");
-            DiscordMessage message = new DiscordMessage();
+            DiscordMessage message = NewMessage("bridge crew");
             DiscordEmbed embed = new DiscordEmbed()
             {
-                Author = embedAuthorCarrier,
                 Color = System.Drawing.Color.Red,
                 Title = "Carrier jump cancelled",
                 Footer = embedFooterJournal,
@@ -183,43 +197,91 @@ namespace WebhookTest
         private static void JournalScanner_CarrierTradeOrderHandler(object? sender, EventArgs e)
         {
             JournalScanner.CarrierTradeOrderEventArgs eArgs = (JournalScanner.CarrierTradeOrderEventArgs)e;
-            Console.WriteLine(eArgs.CarrierTradeOrder.ToString());
+            string? cid = eArgs.CarrierTradeOrder.Value<string>("CarrierID");
+
+            if (cid == null && !cid.Equals(carrierID))
+                return;
+
+            eventMsg = true;
+
+            Console.WriteLine("Trade updated");
+            //Console.WriteLine(eArgs.CarrierTradeOrder.ToString());
 
             bool blackMarket = eArgs.CarrierTradeOrder.Value<bool>("BlackMarket");
             string? commodity = eArgs.CarrierTradeOrder.Value<string>("Commodity");
             int? purchaseOrder = eArgs.CarrierTradeOrder?.Value<int?>("PurchaseOrder");
             int? saleOrder = eArgs.CarrierTradeOrder?.Value<int?>("SaleOrder");
-            int? price = eArgs.CarrierTradeOrder?.Value<int?>("price");
+            int? price = eArgs.CarrierTradeOrder?.Value<int?>("Price");
 
-            DiscordMessage message = new DiscordMessage();
+            DiscordMessage message = NewMessage("commodity trading");
             DiscordEmbed embed = new DiscordEmbed()
             {
-                Author = new EmbedAuthor()
-                {
-                    Name = "Commodity Trading (QBZ-T4J)"
-                },
+                //Author = embedAuthorCommodityTrading,
                 Title = $"Trade updated{(blackMarket ? " (Black market)" : "")}",
-                Footer = embedFooterJournal
+                Footer = embedFooterJournal,
+                Timestamp = eArgs.CarrierTradeOrder.Value<DateTime>("timestamp"),
+                Color = System.Drawing.Color.CadetBlue
             };
 
             #region Order type
-            if (saleOrder != null)
+            if (saleOrder != null && purchaseOrder == null) // Sell order
+            {
                 embed.Fields.Add(new EmbedField() { InLine = true, Name = "Type", Value = "Sale" });
-            if (purchaseOrder != null)
+                embed.Color = System.Drawing.Color.Khaki;
+            }
+            if (purchaseOrder != null && saleOrder == null) // Buy order
+            {
                 embed.Fields.Add(new EmbedField() { InLine = true, Name = "Type", Value = "Buy" });
+                embed.Color = System.Drawing.Color.Ivory;
+            }
+            else if (purchaseOrder == null && saleOrder == null) // Removed order
+            {
+                embed.Fields.Add(new EmbedField() { InLine = true, Name = "Type", Value = "Removed" });
+                embed.Color = System.Drawing.Color.IndianRed;
+            }
             #endregion
 
             embed.Fields.Add(new EmbedField() { InLine = true, Name = "Commodity", Value = commodity });
-            embed.Fields.Add(new EmbedField() { InLine = true, Name = "Price", Value = price.ToString() });
+            
+            if (price != null)
+                embed.Fields.Add(new EmbedField() { InLine = true, Name = "Price", Value = price.ToString() });
 
             message.Embeds.Add(embed);
             messageQueue.Add(message);
         }
 
+        private static DiscordMessage NewMessage(string type)
+        {
+            eventMsg = true;
+            DiscordMessage message = new();
+
+            switch (type)
+            {
+                case "commodity trading":
+                    message.AvatarUrl = @"https://cdn.discordapp.com/attachments/930896737688760330/931584039180206170/Untitled-6.PNG";
+                    message.Username = "Regan Heath (QBZ-T4J)";
+                    return message;
+                case "bridge crew":
+                    message.AvatarUrl = @"https://cdn.discordapp.com/attachments/930896737688760330/931583036129169428/Untitled-4.PNG";
+                    message.Username = "Siya Pittman (QBZ-T4J)";
+                    return message;
+                default:
+                    throw new UnknownMessageTypeException();
+            }
+
+        }
+
         private static void JournalScanner_CarrierJumpHandler(object? sender, EventArgs e)
         {
-            Console.WriteLine("Jumped");
+            JournalScanner.CarrierJumpEventArgs eArgs = (JournalScanner.CarrierJumpEventArgs)e;
+            string? cid = eArgs.CarrierJump.Value<string>("CarrierID");
 
+            if (cid == null && !cid.Equals(carrierID))
+                return;
+
+            eventMsg = true;
+
+            Console.WriteLine("Jumped");
             DiscordMessage message = new DiscordMessage()
             {
                 Content = "Jumped, <@272411566111064074> default message."
@@ -231,6 +293,13 @@ namespace WebhookTest
         private static void JournalScanner_CarrierJumpRequestHandler(object? sender, EventArgs e)
         {
             JournalScanner.CarrierJumpRequestEventArgs eArgs = (JournalScanner.CarrierJumpRequestEventArgs)e;
+            string? cid = eArgs.CarrierJumpRequest.Value<string>("CarrierID");
+
+            if (cid == null && !cid.Equals(carrierID))
+                return;
+
+            eventMsg = true;
+
             Console.WriteLine("Jump request");
             //messageQueue.Add(eArgs.CarrierJumpRequest.ToString());
             //messageQueue.Add("Jump requested");
@@ -242,12 +311,11 @@ namespace WebhookTest
 
             Int32 unixTimestamp = (Int32)(timestampJumpTime.Subtract(new DateTime(1970, 1, 1))).TotalSeconds;
             //Console.WriteLine(unixTimestamp);
-            DiscordMessage message = new DiscordMessage();
+            DiscordMessage message = NewMessage("bridge crew");
             DiscordEmbed embed = new DiscordEmbed()
             {
-                Author = embedAuthorCarrier,
                 Color = System.Drawing.Color.Green,
-                Description = "Carrier jump requested.",
+                Title = "Carrier jump requested.",
                 Timestamp = timestamp,
                 Fields =
                 {
@@ -266,7 +334,7 @@ namespace WebhookTest
                     new EmbedField()
                     {
                         InLine = false,
-                        Name = "Jumping in",
+                        Name = "Countdown",
                         Value = $"<t:{unixTimestamp}:R>"
                     }
                 },

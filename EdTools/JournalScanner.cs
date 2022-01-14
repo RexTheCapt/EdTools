@@ -6,6 +6,7 @@ namespace EdTools
     public class JournalScanner
     {
         public DateTime LastEventTime { get; private set; }
+        public DateTime LastProcessedEventTime { get; private set; }
         public DateTime LastWriteTime { get; private set; }
         public bool FirstRun { get => _firstRun; private set { _firstRun = value; } }
         private bool _firstRun = true;
@@ -16,7 +17,9 @@ namespace EdTools
             _journalPath = journalPath;
         }
 
-        public void TimerScan(object? sender, EventArgs e)
+        public void TimerScan(object? sender, EventArgs e) => TimerScan();
+        public void TimerScan() => TimerScan(sendEventsOnFirstRun: true);
+        public void TimerScan(bool sendEventsOnFirstRun = true)
         {
             string newest = "";
             DateTime currentWriteTime = DateTime.MinValue;
@@ -42,9 +45,12 @@ namespace EdTools
                         if (@event != null)
                         {
                             DateTime currentEventDateTime = @event.Value<DateTime>("timestamp");
-                            if (currentEventDateTime >= LastEventTime)
+                            if (currentEventDateTime >= LastEventTime && currentEventDateTime != LastProcessedEventTime)
                             {
                                 string eventType = @event.Value<string>("event");
+
+                                if (!sendEventsOnFirstRun && FirstRun)
+                                    goto SkipEventSend;
 
                                 switch (eventType)
                                 {
@@ -294,17 +300,17 @@ namespace EdTools
                                         OnUnknown(new UnknownEventArgs(@event: @event, FirstRun));
                                         break;
                                 }
+
+                            SkipEventSend:
                                 LastEventTime = currentEventDateTime;
                             }
                         }
                     }
-                LastEventTime.AddMilliseconds(1);
-
-                LastWriteTime = currentWriteTime;
             }
 
             FirstRun = false;
-            //}
+
+            LastProcessedEventTime = LastEventTime;
         }
 
         #region Events
