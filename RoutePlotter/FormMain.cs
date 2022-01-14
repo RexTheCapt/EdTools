@@ -150,6 +150,14 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * timestamp
+                     * event
+                     * WarketId
+                     * StationName
+                     * StationType
+                     * StarSystem
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }

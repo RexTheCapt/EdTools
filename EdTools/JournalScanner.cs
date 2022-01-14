@@ -45,14 +45,6 @@ namespace EdTools
                             if (currentEventDateTime >= LastEventTime)
                             {
                                 string eventType = @event.Value<string>("event");
-#if DEBUG
-                                #region Debug stuff
-                                if (@event.Value<string>("StarSystem") != null && eventType != "Scan" && eventType != "StartJump" && eventType != "FSDJump" && eventType != "SupercruiseExit" && eventType != "SupercruiseEntry" && eventType != "ApproachBody" && eventType != "Touchdown" && eventType != "Liftoff" && eventType != "Disembark" && eventType != "Embark" && eventType != "LeaveBody" && eventType != "Location" && eventType != "Docked" && eventType != "StoredShips" && eventType != "Outfitting" && eventType != "Shipyard" && eventType != "ScanBaryCentre" && eventType != "Market" && eventType != "StoredModules" && eventType != "CarrierJump")
-                                {
-                                    Console.WriteLine(eventType);
-                                }
-                                #endregion
-#endif
 
                                 switch (eventType)
                                 {
@@ -157,6 +149,21 @@ namespace EdTools
                                         break;
                                     case "CarrierJump":
                                         OnCarrierJump(new CarrierJumpEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "CarrierDepositFuel":
+                                        OnCarrierDepositFuel(new CarrierDepositFuelEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "CarrierStats":
+                                        OnCarrierStats(new CarrierStatsEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "CarrierJumpRequest":
+                                        OnCarrierJumpRequest(new CarrierJumpRequestEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "CarrierTradeOrder":
+                                        OnCarrierTradeOrder(new CarrierTradeOrderEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "CarrierJumpCancelled":
+                                        OnCarrierJumpCancelled(new CarrierJumpCancelledEventArgs(@event: @event, FirstRun));
                                         break;
                                     #region unused events
                                     case "UseConsumable":
@@ -283,6 +290,7 @@ namespace EdTools
                                         break;
                                     #endregion
                                     default:
+                                        Console.WriteLine($"UNKNOWN_EVENT: {eventType}");
                                         OnUnknown(new UnknownEventArgs(@event: @event, FirstRun));
                                         break;
                                 }
@@ -300,6 +308,111 @@ namespace EdTools
         }
 
         #region Events
+        #region CarrierJumpCancelled
+        public static event EventHandler CarrierJumpCancelledHandler;
+
+        protected virtual void OnCarrierJumpCancelled(CarrierJumpCancelledEventArgs e)
+        {
+            EventHandler handler = CarrierJumpCancelledHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class CarrierJumpCancelledEventArgs : EventArgs
+        {
+            public CarrierJumpCancelledEventArgs(JObject @event, bool firstRun)
+            {
+                CarrierJumpCancelled = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject CarrierJumpCancelled { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region CarrierTradeOrder
+        public static event EventHandler CarrierTradeOrderHandler;
+
+        protected virtual void OnCarrierTradeOrder(CarrierTradeOrderEventArgs e)
+        {
+            EventHandler handler = CarrierTradeOrderHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class CarrierTradeOrderEventArgs : EventArgs
+        {
+            public CarrierTradeOrderEventArgs(JObject @event, bool firstRun)
+            {
+                CarrierTradeOrder = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject CarrierTradeOrder { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region CarrierJumpRequest
+        public static event EventHandler CarrierJumpRequestHandler;
+
+        protected virtual void OnCarrierJumpRequest(CarrierJumpRequestEventArgs e)
+        {
+            EventHandler handler = CarrierJumpRequestHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class CarrierJumpRequestEventArgs : EventArgs
+        {
+            public CarrierJumpRequestEventArgs(JObject @event, bool firstRun)
+            {
+                CarrierJumpRequest = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject CarrierJumpRequest { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region CarrierStats
+        public static event EventHandler CarrierStatsHandler;
+
+        protected virtual void OnCarrierStats(CarrierStatsEventArgs e)
+        {
+            EventHandler handler = CarrierStatsHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class CarrierStatsEventArgs : EventArgs
+        {
+            public CarrierStatsEventArgs(JObject @event, bool firstRun)
+            {
+                CarrierStats = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject CarrierStats { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region CarrierDepositFuel
+        public static event EventHandler CarrierDepositFuelHandler;
+
+        protected virtual void OnCarrierDepositFuel(CarrierDepositFuelEventArgs e)
+        {
+            EventHandler handler = CarrierDepositFuelHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class CarrierDepositFuelEventArgs : EventArgs
+        {
+            public CarrierDepositFuelEventArgs(JObject @event, bool firstRun)
+            {
+                CarrierDepositFuel = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject CarrierDepositFuel { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
         #region UnknownEvent
         public static event EventHandler UnknownEventHandler;
 
