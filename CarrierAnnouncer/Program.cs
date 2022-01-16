@@ -14,12 +14,14 @@ namespace CarrierAnnouncer
 {
     internal class Program
     {
-        internal static DiscordWebhook hook;
+        internal static List<DiscordWebhook> hooks = new();
         internal static JournalScanner scanner;
         internal static List<DiscordMessage> messageQueue = new List<DiscordMessage>();
         internal static string carrierID = "3706547712";
         internal static EmbedFooter embedFooterJournal;
         internal static bool eventMsgSent = false;
+        internal static string? targetSystem = null;
+        internal static string? targetBody = null;
 
         internal static async Task Main()
         {
@@ -33,7 +35,7 @@ namespace CarrierAnnouncer
             JournalScanner.CarrierJumpCancelledHandler += JournalScanner_CarrierJumpCancelledHandler;
             #endregion
 
-            Uri? hookUri = null;
+            List<Uri> hookUris = new();
 
             #region setup vars
             string[,] vars = new string[,] {
@@ -49,23 +51,31 @@ namespace CarrierAnnouncer
                 {
                     Console.WriteLine(text);
                     Console.Write(": ");
+                    string[] uris = Console.ReadLine().Split(';');
 
                     using (var w = new StreamWriter(file))
-                        w.Write(Console.ReadLine());
+                        foreach (var u in uris)
+                            w.WriteLine(u);
                 }
             }
 
             using (var r = new StreamReader("hookuri"))
             {
-                string? v = r.ReadLine();
-                hookUri = new Uri(v);
+                while (!r.EndOfStream)
+                {
+                    string? v = r.ReadLine();
+                    hookUris.Add(new Uri(v));
+                }
             }
             #endregion
-            
-            hook = new DiscordWebhook()
+
+            foreach (Uri uri in hookUris)
             {
-                Uri = hookUri
-            };
+                hooks.Add(new DiscordWebhook()
+                {
+                    Uri = uri
+                });
+            }
 
             #region setup embeds
             embedFooterJournal = new EmbedFooter()
@@ -73,6 +83,8 @@ namespace CarrierAnnouncer
                 Text = "From journal"
             };
             #endregion
+
+            Console.Clear();
 
             while (true)
             {
@@ -120,6 +132,32 @@ namespace CarrierAnnouncer
                         messageQueue.Add(message);
                         Console.WriteLine();
                     }
+                    else if (consoleKeyInfo.Key == ConsoleKey.T)
+                    {
+                        targetBody = targetSystem = null;
+                        Console.WriteLine("---INTERUPTED--");
+                        Console.Write("Please input target system or leave blank to cancel\n: ");
+
+                        string? read = Console.ReadLine();
+
+                        if (string.IsNullOrEmpty(read) || string.IsNullOrWhiteSpace(read))
+                        {
+                            Console.WriteLine("Target system cleared.\n");
+                            continue;
+                        }
+                        else
+                        {
+                            targetSystem = read.Trim().ToUpper();
+                            Console.Write("Please input target body or leave blank to cancel\n: ");
+
+                            read = Console.ReadLine();
+
+                            if (!string.IsNullOrEmpty(read) && !string.IsNullOrWhiteSpace(read))
+                                targetBody = read.Trim().ToUpper();
+                        }
+
+                        Console.WriteLine($"Target system: {targetSystem} > {targetBody}\n");
+                    }
                 }
 
                 if (eventMsgSent)
@@ -145,7 +183,9 @@ namespace CarrierAnnouncer
                     if (messageQueue[0].Username == null)
                         messageQueue[0].Username = "Carrier Announcer";
 
-                    await hook.SendAsync(messageQueue[0]);
+                    foreach (var hook in hooks)
+                        await hook.SendAsync(messageQueue[0]);
+                    
                     messageQueue.RemoveAt(0);
                 }
 
@@ -315,23 +355,47 @@ namespace CarrierAnnouncer
                     {
                         InLine = true,
                         Name = "Current system",
-                        Value = fromSystem
+                        Value = fromSystem.Trim().ToUpper(),
                     },
                     new EmbedField()
                     {
                         InLine = true,
                         Name = "Current body",
-                        Value = fromBody
-                    },
-                    new EmbedField()
-                    {
-                        InLine = false,
-                        Name = "Countdown",
-                        Value = $"<t:{unixTimestamp}:R>"
+                        Value = fromBody.Trim().ToUpper()
                     }
                 },
                 Footer = embedFooterJournal
             };
+
+            if (targetSystem != null)
+            {
+                embed.Fields.Add(new EmbedField()
+                {
+                    InLine = false,
+                    Name = "Target System",
+                    Value = targetSystem
+                });
+                targetSystem = null;
+            }
+
+            if (targetBody != null)
+            {
+                embed.Fields.Add(new EmbedField()
+                {
+                    InLine = true,
+                    Name = "Target Body",
+                    Value = targetBody
+                });
+                targetSystem = null;
+            }
+
+            embed.Fields.Add(new EmbedField()
+            {
+                InLine = false,
+                Name = "Countdown",
+                Value = $"<t:{unixTimestamp}:R>"
+            });
+
             message.Embeds.Add(embed);
             messageQueue.Add(message);
             //messageQueue.Add($"Jumping from `{fromSystem}` body `{fromBody}` <t:{unixTimestamp}:R>");

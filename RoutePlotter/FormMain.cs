@@ -359,6 +359,16 @@ namespace RoutePlotter
 
                 if (j != null)
                 {
+                    /*
+                     * {
+  "timestamp": "2022-01-14T19:59:02Z",
+  "event": "ApproachBody",
+  "StarSystem": "Arangorii",
+  "SystemAddress": 7230745219802,
+  "Body": "Arangorii B 1",
+  "BodyID": 50
+}
+                     */
                     CurrentStarSystem = j.Value<string>("StarSystem") ?? "[UNKNOWN]";
                 }
             }
