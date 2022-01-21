@@ -27,11 +27,14 @@ namespace RoutePlotter
             get => _currentStarSystem;
             private set
             {
+                if (value.Equals(textBoxCurrentSystem.Text, StringComparison.OrdinalIgnoreCase))
+                    return;
+
+                textBoxCurrentSystem.ForeColor = Color.Black;
+                textBoxCurrentSystem.BackColor = Color.FromName("Control");
+
                 _currentStarSystem = value;
                 textBoxCurrentSystem.Text = _currentStarSystem;
-
-                if (!_currentStarSystem.Equals(value, StringComparison.OrdinalIgnoreCase))
-                    textBoxCurrentSystem.BackColor = Color.FromName("Control");
 
                 if (JournalScanner != null && !JournalScanner.FirstRun)
                 {
@@ -67,6 +70,7 @@ namespace RoutePlotter
             JournalScanner.MarketHandler += JournalScanner_MarketHandler;
             JournalScanner.StoredModulesHandler += JournalScanner_StoredModulesHandler;
             JournalScanner.CarrierJumpHandler += JournalScanner_CarrierJumpHandler;
+            JournalScanner.SendTextHandler += JournalScanner_SendTextHandler;
             #endregion
 
             _timerJournalScanner = new Timer();
@@ -80,6 +84,83 @@ namespace RoutePlotter
             _delayedUpdate.Interval = 1000;
 
             listView1.DoubleClick += ListView1_DoubleClick;
+        }
+
+        private void JournalScanner_SendTextHandler(object? sender, EventArgs e)
+        {
+            JournalScanner.SendTextEventArgs eArgs = (JournalScanner.SendTextEventArgs)e;
+            if (eArgs.FirstRun)
+                return;
+
+            string prefix = "/";
+            string text = (eArgs.SendText.Value<string>("Message") ?? "").ToUpper();
+
+            if (text.StartsWith(prefix) && text.Length > prefix.Length)
+            {
+                string sText = text.Substring(prefix.Length);
+                string[] split = sText.Split(' ');
+
+                string arg;
+                switch (split[0])
+                {
+                    case "RANGE":
+                        if (split.Length < 2)
+                            return;
+
+                        arg = split[1];
+                        if (decimal.TryParse(arg, out decimal res))
+                        {
+                            numericUpDownJumpRange.Value = res;
+                        }
+                        break;
+                    case "DEST":
+                    case "DESTINATION":
+                    case "TARGETSYSTEM":
+                    case "TARGET":
+                    case "SYSTEM":
+                        if (split.Length < 2)
+                            return;
+
+                        arg = split[1];
+
+                        textBoxTargetSystem.Text = sText.Substring(sText.IndexOf(' ')).Trim();
+                        UpdateTravelPath();
+                        break;
+                    case "UPDATE":
+                        UpdateTravelPath();
+                        break;
+                    case "TOP":
+                        checkBox1.Checked = !checkBox1.Checked;
+                        break;
+                    case "NEXT":
+                        SetClipboard(1);
+                        break;
+                    case "PREVIOUS":
+                    case "PREV":
+                        SetClipboard(-1);
+                        break;
+                }
+            }
+        }
+
+        private void SetClipboard(int v)
+        {
+            for (int i = 0; i < listView1.Items.Count; i++)
+            {
+                ListViewItem lvi = listView1.Items[i];
+
+                if (lvi.BackColor == Color.Green)
+                {
+                    lvi.BackColor = Color.FromName("Control");
+                    lvi.ForeColor = Color.Black;
+
+                    ListViewItem trg = listView1.Items[i + v];
+                    Clipboard.SetText(trg.Text);
+                    trg.BackColor = Color.Green;
+                    trg.ForeColor = Color.White;
+                    return;
+                }
+            }
         }
 
         private void DelayedUpdateTick(object? sender, EventArgs e)
@@ -97,6 +178,9 @@ namespace RoutePlotter
             }
         }
 
+        /// <summary>
+        /// Fetch updated route from spansh
+        /// </summary>
         private void UpdateTravelPath()
         {
             if (string.IsNullOrEmpty(textBoxTargetSystem.Text) || string.IsNullOrWhiteSpace(textBoxTargetSystem.Text) || _ranUpdateInSystem.Equals(CurrentStarSystem))
@@ -521,9 +605,6 @@ namespace RoutePlotter
             try
             {
                 jToken = NeutronRouterAPI.GetNewRoute(textBoxCurrentSystem.Text, textBoxTargetSystem.Text, numericUpDownJumpRange.Value, 60);
-
-                if (textBoxCurrentSystem.BackColor == Color.Red)
-                    textBoxCurrentSystem.BackColor = Color.Orange;
             }
             catch (Exception ex)
             {
@@ -536,7 +617,8 @@ namespace RoutePlotter
                 }
                 else if (t == typeof(InvalidStartSystemException))
                 {
-                    textBoxCurrentSystem.BackColor = Color.Red;
+                    textBoxCurrentSystem.BackColor = Color.Green;
+                    textBoxCurrentSystem.ForeColor = Color.White;
                     _delayedUpdate.Enabled = true;
                     return;
                 }
@@ -546,10 +628,12 @@ namespace RoutePlotter
 
             listView1.Items.Clear();
             bool skipFirst = true;
-            bool copySecond = true;
+            bool nextRouteCopied = false;
             uint totalJumps = 0;
-            foreach (JObject j in jToken.Value<JArray>("system_jumps"))
+            JArray list = jToken.Value<JArray>("system_jumps") ?? new();
+            for (int i = 0; i < list.Count; i++)
             {
+                JObject j = (JObject)list[i];
                 totalJumps += j.Value<uint>("jumps");
 
                 if (skipFirst)
@@ -567,13 +651,21 @@ namespace RoutePlotter
                     j.Value<string>("neutron_star")
                 };
 
-                if (copySecond)
+                ListViewItem lvi = new ListViewItem(subItems);
+                if ((!nextRouteCopied && i == list.Count - 1) || (!nextRouteCopied && j.Value<decimal>("distance_jumped") > 100))
                 {
                     Clipboard.SetText(subItems[0]);
-                    copySecond = false;
+                    nextRouteCopied = true;
+                    lvi.BackColor = Color.Green;
+                    lvi.ForeColor = Color.White;
                 }
 
-                ListViewItem lvi = new ListViewItem(subItems);
+                //if (copySecond)
+                //{
+                //    Clipboard.SetText(subItems[0]);
+                //    copySecond = false;
+                //}
+
                 ListViewItem listViewItem = listView1.Items.Add(lvi);
                 listViewItem.Tag = j;
             }
@@ -592,6 +684,11 @@ namespace RoutePlotter
             }
 
             return $"{v:0.00}{sizeSuffix[places]}";
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            this.TopMost = checkBox1.Checked;
         }
     }
 }

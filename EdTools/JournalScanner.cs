@@ -171,8 +171,17 @@ namespace EdTools
                                     case "CarrierJumpCancelled":
                                         OnCarrierJumpCancelled(new CarrierJumpCancelledEventArgs(@event: @event, FirstRun));
                                         break;
-                                    #region unused events
+                                    case "Commander":
+                                        OnCommander(new CommanderEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    case "SendText":
+                                        OnSendText(new SendTextEventArgs(@event: @event, FirstRun));
+                                        break;
                                     case "UseConsumable":
+                                        OnUseConsumable(new UseConsumableEventArgs(@event: @event, FirstRun));
+                                        break;
+                                    #region unused events
+                                    //case "UseConsumable":
                                     case "UpgradeWeapon":
                                     case "ShipyardNew":
                                     case "BuyWeapon":
@@ -263,11 +272,9 @@ namespace EdTools
                                     case "MaterialCollected":
                                     case "ShipLocker":
                                     case "FSSDiscoveryScan":
-                                    case "SendText":
                                     case "FSDTarget":
                                     case "ModuleInfo":
                                     case "Progress":
-                                    case "Commander":
                                     case "Missions":
                                     case "Materials":
                                     case "MarketBuy":
@@ -293,6 +300,7 @@ namespace EdTools
                                     case "DockingRequested":
                                     case "HullDamage":
                                     case "StartJump":
+                                    case "Powerplay":
                                         break;
                                     #endregion
                                     default:
@@ -314,6 +322,69 @@ namespace EdTools
         }
 
         #region Events
+        #region UseConsumable
+        public static event EventHandler UseConsumableHandler;
+
+        protected virtual void OnUseConsumable(UseConsumableEventArgs e)
+        {
+            EventHandler handler = UseConsumableHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class UseConsumableEventArgs : EventArgs
+        {
+            public UseConsumableEventArgs(JObject @event, bool firstRun)
+            {
+                UseConsumable = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject UseConsumable { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region SendText
+        public static event EventHandler SendTextHandler;
+
+        protected virtual void OnSendText(SendTextEventArgs e)
+        {
+            EventHandler handler = SendTextHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class SendTextEventArgs : EventArgs
+        {
+            public SendTextEventArgs(JObject @event, bool firstRun)
+            {
+                SendText = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject SendText { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
+        #region Commander
+        public static event EventHandler CommanderHandler;
+
+        protected virtual void OnCommander(CommanderEventArgs e)
+        {
+            EventHandler handler = CommanderHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class CommanderEventArgs : EventArgs
+        {
+            public CommanderEventArgs(JObject @event, bool firstRun)
+            {
+                Commander = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject Commander { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
         #region CarrierJumpCancelled
         public static event EventHandler CarrierJumpCancelledHandler;
 
