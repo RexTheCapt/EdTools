@@ -306,19 +306,45 @@ namespace CarrierAnnouncer
         private static void JournalScanner_CarrierJumpHandler(object? sender, EventArgs e)
         {
             JournalScanner.CarrierJumpEventArgs eArgs = (JournalScanner.CarrierJumpEventArgs)e;
-            string? cid = eArgs.CarrierJump.Value<string>("CarrierID");
+            string? stationName = eArgs.CarrierJump.Value<string>("StationName");
 
-            if (cid == null && !cid.Equals(carrierID))
+            if (stationName == null || !stationName.Equals("QBZ-T4J"))
                 return;
 
             eventMsgSent = true;
 
+            string? starSystem = eArgs.CarrierJump.Value<string>("StarSystem");
+            string? body = eArgs.CarrierJump.Value<string>("Body")?.Replace(starSystem, "").Trim();
+
             Console.WriteLine("Jumped");
-            DiscordMessage message = new DiscordMessage()
+            
+            DiscordMessage message = NewMessage("brudge crew");
+            DiscordEmbed embed = new DiscordEmbed()
             {
-                Content = "Jumped, <@272411566111064074> default message."
+                Color = System.Drawing.Color.Green,
+                Title = "Carrier jump completed",
+                Footer = embedFooterJournal
             };
 
+            if (starSystem != null)
+            {
+                embed.Fields.Add(new EmbedField()
+                {
+                    InLine = true,
+                    Name = "System",
+                    Value = starSystem
+                });
+
+                if (body != null && !string.IsNullOrEmpty(body))
+                    embed.Fields.Add(new EmbedField()
+                    {
+                        InLine = true,
+                        Name = "Body",
+                        Value = body
+                    });
+            }
+
+            message.Embeds.Add(embed);
             messageQueue.Add(message);
         }
 
