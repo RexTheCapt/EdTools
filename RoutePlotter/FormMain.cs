@@ -18,6 +18,7 @@ namespace RoutePlotter
         private Timer _timerJournalScanner;
         private string _currentStarSystem;
         private readonly Timer _delayedUpdate;
+        private RtcLib.Settings _settings;
 
         internal JournalScanner JournalScanner { get; private set; }
         internal string _ranUpdateInSystem = "";
@@ -46,6 +47,9 @@ namespace RoutePlotter
         public FormMain()
         {
             InitializeComponent();
+
+            _settings = new RtcLib.Settings("RoutePlotter", "Settings", "RexTheCapt", RtcLib.Settings.LocationEnum.Roaming);
+            numericUpDownJumpRange.Value = _settings.GetDecimal("range", 10);
 
             #region Setup journal scanner
             JournalScanner = new JournalScanner(JournalPath);
@@ -85,13 +89,21 @@ namespace RoutePlotter
             _delayedUpdate.Interval = 1000;
 
             listView1.DoubleClick += ListView1_DoubleClick;
+
+            this.FormClosing += FormMain_FormClosing;
+
+            _currentStarSystem = "[UNKNOWN]";
+        }
+
+        private void FormMain_FormClosing(object? sender, FormClosingEventArgs e)
+        {
+            _settings.SetDecimal("range", numericUpDownJumpRange.Value);
+            _settings.Save();
         }
 
         private void JournalScanner_LoadoutHandler(object? sender, EventArgs e)
         {
             JournalScanner.LoadoutEventArgs eArgs = (JournalScanner.LoadoutEventArgs)e;
-
-
         }
 
         private void JournalScanner_SendTextHandler(object? sender, EventArgs e)

@@ -39,8 +39,6 @@
             this.columnHeaderNeutron = new System.Windows.Forms.ColumnHeader();
             this.label2 = new System.Windows.Forms.Label();
             this.textBoxCurrentSystem = new System.Windows.Forms.TextBox();
-            this.textBoxClientName = new System.Windows.Forms.TextBox();
-            this.label3 = new System.Windows.Forms.Label();
             this.numericUpDownJumpRange = new System.Windows.Forms.NumericUpDown();
             this.label4 = new System.Windows.Forms.Label();
             this.checkBox1 = new System.Windows.Forms.CheckBox();
@@ -49,7 +47,7 @@
             // 
             // textBoxTargetSystem
             // 
-            this.textBoxTargetSystem.Location = new System.Drawing.Point(101, 99);
+            this.textBoxTargetSystem.Location = new System.Drawing.Point(101, 70);
             this.textBoxTargetSystem.Name = "textBoxTargetSystem";
             this.textBoxTargetSystem.Size = new System.Drawing.Size(225, 23);
             this.textBoxTargetSystem.TabIndex = 0;
@@ -57,7 +55,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(13, 102);
+            this.label1.Location = new System.Drawing.Point(13, 73);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(82, 15);
             this.label1.TabIndex = 1;
@@ -65,7 +63,7 @@
             // 
             // buttonStartRoute
             // 
-            this.buttonStartRoute.Location = new System.Drawing.Point(332, 99);
+            this.buttonStartRoute.Location = new System.Drawing.Point(332, 70);
             this.buttonStartRoute.Name = "buttonStartRoute";
             this.buttonStartRoute.Size = new System.Drawing.Size(75, 23);
             this.buttonStartRoute.TabIndex = 2;
@@ -83,7 +81,7 @@
             this.columnHeaderNeutron});
             this.listView1.FullRowSelect = true;
             this.listView1.HeaderStyle = System.Windows.Forms.ColumnHeaderStyle.Nonclickable;
-            this.listView1.Location = new System.Drawing.Point(13, 128);
+            this.listView1.Location = new System.Drawing.Point(13, 99);
             this.listView1.Name = "listView1";
             this.listView1.Size = new System.Drawing.Size(394, 319);
             this.listView1.TabIndex = 3;
@@ -128,22 +126,6 @@
             this.textBoxCurrentSystem.ReadOnly = true;
             this.textBoxCurrentSystem.Size = new System.Drawing.Size(225, 23);
             this.textBoxCurrentSystem.TabIndex = 5;
-            // 
-            // textBoxClientName
-            // 
-            this.textBoxClientName.Location = new System.Drawing.Point(101, 70);
-            this.textBoxClientName.Name = "textBoxClientName";
-            this.textBoxClientName.Size = new System.Drawing.Size(225, 23);
-            this.textBoxClientName.TabIndex = 6;
-            // 
-            // label3
-            // 
-            this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(13, 73);
-            this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(38, 15);
-            this.label3.TabIndex = 7;
-            this.label3.Text = "Client";
             // 
             // numericUpDownJumpRange
             // 
@@ -192,12 +174,10 @@
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(418, 465);
+            this.ClientSize = new System.Drawing.Size(418, 427);
             this.Controls.Add(this.checkBox1);
             this.Controls.Add(this.label4);
             this.Controls.Add(this.numericUpDownJumpRange);
-            this.Controls.Add(this.label3);
-            this.Controls.Add(this.textBoxClientName);
             this.Controls.Add(this.textBoxCurrentSystem);
             this.Controls.Add(this.label2);
             this.Controls.Add(this.listView1);
@@ -225,8 +205,6 @@
         private System.Windows.Forms.ColumnHeader columnHeaderNeutron;
         private System.Windows.Forms.Label label2;
         private System.Windows.Forms.TextBox textBoxCurrentSystem;
-        private System.Windows.Forms.TextBox textBoxClientName;
-        private System.Windows.Forms.Label label3;
         private System.Windows.Forms.NumericUpDown numericUpDownJumpRange;
         private System.Windows.Forms.Label label4;
         private System.Windows.Forms.CheckBox checkBox1;
