@@ -38,7 +38,7 @@ namespace RoutePlotter
 
                 if (JournalScanner != null && !JournalScanner.FirstRun)
                 {
-                    UpdateTravelPath();
+                    UpdateTravelPath(false);
                 }
             }
         }
@@ -71,6 +71,7 @@ namespace RoutePlotter
             JournalScanner.StoredModulesHandler += JournalScanner_StoredModulesHandler;
             JournalScanner.CarrierJumpHandler += JournalScanner_CarrierJumpHandler;
             JournalScanner.SendTextHandler += JournalScanner_SendTextHandler;
+            JournalScanner.LoadoutHandler += JournalScanner_LoadoutHandler;
             #endregion
 
             _timerJournalScanner = new Timer();
@@ -84,6 +85,13 @@ namespace RoutePlotter
             _delayedUpdate.Interval = 1000;
 
             listView1.DoubleClick += ListView1_DoubleClick;
+        }
+
+        private void JournalScanner_LoadoutHandler(object? sender, EventArgs e)
+        {
+            JournalScanner.LoadoutEventArgs eArgs = (JournalScanner.LoadoutEventArgs)e;
+
+
         }
 
         private void JournalScanner_SendTextHandler(object? sender, EventArgs e)
@@ -124,10 +132,10 @@ namespace RoutePlotter
                         arg = split[1];
 
                         textBoxTargetSystem.Text = sText.Substring(sText.IndexOf(' ')).Trim();
-                        UpdateTravelPath();
+                        UpdateTravelPath(true);
                         break;
                     case "UPDATE":
-                        UpdateTravelPath();
+                        UpdateTravelPath(true);
                         break;
                     case "TOP":
                         checkBox1.Checked = !checkBox1.Checked;
@@ -181,10 +189,11 @@ namespace RoutePlotter
         /// <summary>
         /// Fetch updated route from spansh
         /// </summary>
-        private void UpdateTravelPath()
+        private void UpdateTravelPath(bool force)
         {
-            if (string.IsNullOrEmpty(textBoxTargetSystem.Text) || string.IsNullOrWhiteSpace(textBoxTargetSystem.Text) || _ranUpdateInSystem.Equals(CurrentStarSystem))
-                return;
+            if (!force)
+                if (string.IsNullOrEmpty(textBoxTargetSystem.Text) || string.IsNullOrWhiteSpace(textBoxTargetSystem.Text) || _ranUpdateInSystem.Equals(CurrentStarSystem))
+                    return;
 
             ButtonStartRoute_Click(this, new EventArgs());
 
