@@ -166,10 +166,10 @@ namespace CarrierAnnouncer
                     eventMsgSent = false;
                 }
 
-                if (Console.CursorTop != 0)
-                    Console.CursorTop--;
+                //if (Console.CursorTop != 0)
+                //    Console.CursorTop--;
 
-                Console.Write($"{DateTime.Now}\n");
+                //Console.Write($"{DateTime.Now}\n");
                 scanner.TimerScan(sendEventsOnFirstRun: false);
 
                 if (messageQueue.Count > 0)
