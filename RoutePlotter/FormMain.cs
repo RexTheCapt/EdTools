@@ -651,6 +651,7 @@ namespace RoutePlotter
             bool skipFirst = true;
             bool nextRouteCopied = false;
             uint totalJumps = 0;
+            decimal firstDistanceLeft = 0;
             JArray list = jToken.Value<JArray>("system_jumps") ?? new();
             for (int i = 0; i < list.Count; i++)
             {
@@ -660,6 +661,7 @@ namespace RoutePlotter
                 if (skipFirst)
                 {
                     skipFirst = false;
+                    firstDistanceLeft = j.Value<decimal>("distance_left");
                     continue;
                 }
 
@@ -673,7 +675,7 @@ namespace RoutePlotter
                 };
 
                 ListViewItem lvi = new ListViewItem(subItems);
-                if ((!nextRouteCopied && i == list.Count - 1) || (!nextRouteCopied && j.Value<decimal>("distance_jumped") > 100))
+                if ((!nextRouteCopied && i == list.Count - 1) || (!nextRouteCopied && firstDistanceLeft - j.Value<decimal>("distance_left") > numericUpDownJumpRange.Value * 4))
                 {
                     Clipboard.SetText(subItems[0]);
                     nextRouteCopied = true;
