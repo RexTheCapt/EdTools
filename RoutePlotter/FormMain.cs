@@ -652,6 +652,7 @@ namespace RoutePlotter
             bool nextRouteCopied = false;
             uint totalJumps = 0;
             decimal firstDistanceLeft = 0;
+            ListViewItem prevLvi = null;
             JArray list = jToken.Value<JArray>("system_jumps") ?? new();
             for (int i = 0; i < list.Count; i++)
             {
@@ -677,10 +678,21 @@ namespace RoutePlotter
                 ListViewItem lvi = new ListViewItem(subItems);
                 if ((!nextRouteCopied && i == list.Count - 1) || (!nextRouteCopied && firstDistanceLeft - j.Value<decimal>("distance_left") > numericUpDownJumpRange.Value * 4))
                 {
-                    Clipboard.SetText(subItems[0]);
+                    ListViewItem tlvi;
+                    if (prevLvi == null)
+                    {
+                        Clipboard.SetText(subItems[0]);
+                        tlvi = lvi;
+                    }
+                    else
+                    {
+                        Clipboard.SetText(prevLvi.Text);
+                        tlvi = prevLvi;
+                    }
+
                     nextRouteCopied = true;
-                    lvi.BackColor = Color.Green;
-                    lvi.ForeColor = Color.White;
+                    tlvi.BackColor = Color.Green;
+                    tlvi.ForeColor = Color.White;
                 }
 
                 //if (copySecond)
@@ -691,6 +703,7 @@ namespace RoutePlotter
 
                 ListViewItem listViewItem = listView1.Items.Add(lvi);
                 listViewItem.Tag = j;
+                prevLvi = lvi;
             }
             this.Text = $"Route Plotter | {totalJumps} jumps left";
         }
