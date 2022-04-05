@@ -180,6 +180,9 @@ namespace EdTools
                                     case "UseConsumable":
                                         OnUseConsumable(new UseConsumableEventArgs(@event: @event, FirstRun));
                                         break;
+                                    case "RefuelAll":
+                                        OnRefuelAll(new RefuelAllEventArgs(@event: @event, FirstRun));
+                                        break;
                                     #region unused events
                                     //case "UseConsumable":
                                     case "UpgradeWeapon":
@@ -257,7 +260,6 @@ namespace EdTools
                                     case "ShieldState":
                                     case "EjectCargo":
                                     case "AfmuRepairs":
-                                    case "RefuelAll":
                                     case "LaunchDrone":
                                     case "Bounty":
                                     case "SuitLoadout":
@@ -322,6 +324,27 @@ namespace EdTools
         }
 
         #region Events
+        #region RefuelAll
+        public static event EventHandler RefuelAllHandler;
+
+        protected virtual void OnRefuelAll(RefuelAllEventArgs e)
+        {
+            EventHandler handler = RefuelAllHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class RefuelAllEventArgs : EventArgs
+        {
+            public RefuelAllEventArgs(JObject @event, bool firstRun)
+            {
+                RefuelAll = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject RefuelAll { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
         #region UseConsumable
         public static event EventHandler UseConsumableHandler;
 
