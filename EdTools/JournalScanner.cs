@@ -12,6 +12,10 @@ namespace EdTools
         private bool _firstRun = true;
         private string _journalPath;
 
+        public JournalScanner()
+        {
+            _journalPath = $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\\Saved Games\\Frontier Developments\\Elite Dangerous";
+        }
         public JournalScanner (string journalPath)
         {
             _journalPath = journalPath;
@@ -183,6 +187,9 @@ namespace EdTools
                                     case "RefuelAll":
                                         OnRefuelAll(new RefuelAllEventArgs(@event: @event, FirstRun));
                                         break;
+                                    case "ReceiveText":
+                                        OnReceiveText(new ReceiveTextEventArgs(@event: @event, FirstRun));
+                                        break;
                                     #region unused events
                                     //case "UseConsumable":
                                     case "UpgradeWeapon":
@@ -297,12 +304,15 @@ namespace EdTools
                                     case "NpcCrewPaidWage":
                                     case "CargoDepot":
                                     case "Undocked":
-                                    case "ReceiveText":
                                     case "Music":
                                     case "DockingRequested":
                                     case "HullDamage":
                                     case "StartJump":
                                     case "Powerplay":
+                                    case "Promotion":
+                                    case "SellOrganicData":
+                                    case "CarrierBankTransfer":
+                                    case "PVPKill":
                                         break;
                                     #endregion
                                     default:
@@ -324,6 +334,27 @@ namespace EdTools
         }
 
         #region Events
+        #region ReceiveText
+        public static event EventHandler ReceiveTextHandler;
+
+        protected virtual void OnReceiveText(ReceiveTextEventArgs e)
+        {
+            EventHandler handler = ReceiveTextHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class ReceiveTextEventArgs : EventArgs
+        {
+            public ReceiveTextEventArgs(JObject @event, bool firstRun)
+            {
+                ReceiveText = @event;
+                this.FirstRun = firstRun;
+            }
+
+            public JObject ReceiveText { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
         #region RefuelAll
         public static event EventHandler RefuelAllHandler;
 
