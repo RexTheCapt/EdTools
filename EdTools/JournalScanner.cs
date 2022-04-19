@@ -16,6 +16,15 @@ namespace EdTools
         {
             _journalPath = $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\\Saved Games\\Frontier Developments\\Elite Dangerous";
         }
+
+        /// <summary>
+        /// Run the journalscanner
+        /// </summary>
+        public void Tick()
+        {
+            TimerScan();
+        }
+
         public JournalScanner (string journalPath)
         {
             _journalPath = journalPath;
@@ -351,6 +360,15 @@ namespace EdTools
                 this.FirstRun = firstRun;
             }
 
+            /// <summary>
+            /// <para>Tokens:</para>
+            /// <para>timestamp</para>
+            /// <para>event</para>
+            /// <para>From</para>
+            /// <para>Message</para>
+            /// <para>Message_Localised</para>
+            /// <para>Channel</para>
+            /// </summary>
             public JObject ReceiveText { get; private set; }
             public bool FirstRun { get; private set; }
         }
@@ -414,6 +432,14 @@ namespace EdTools
                 this.FirstRun = firstRun;
             }
 
+            /// <summary>
+            /// Tokens:
+            /// <para>timestamp</para>
+            /// <para>event</para>
+            /// <para>To (Which channel the message was sent to)</para>
+            /// <para>Message (Content of message)</para>
+            /// <para>Sent (If message was sent)</para>
+            /// </summary>
             public JObject SendText { get; private set; }
             public bool FirstRun { get; private set; }
         }
@@ -876,6 +902,27 @@ namespace EdTools
                 this.FirstRun = firstRun;
             }
 
+            /// <summary>
+            /// Tokens:
+            /// <para>timestamp</para>
+            /// <para>event</para>
+            /// <para>FID</para>
+            /// <para>Commander</para>
+            /// <para>Horizons</para>
+            /// <para>Odyssey</para>
+            /// <para>Ship</para>
+            /// <para>ShipID</para>
+            /// <para>ShipName</para>
+            /// <para>ShipIdent</para>
+            /// <para>FuelLevel</para>
+            /// <para>FuelCapacity</para>
+            /// <para>GameMode</para>
+            /// <para>Credits</para>
+            /// <para>Loan</para>
+            /// <para>language</para>
+            /// <para>gameversion</para>
+            /// <para>build</para>
+            /// </summary>
             public JObject LoadGame { get; private set; }
             public bool FirstRun { get; private set; }
         }
