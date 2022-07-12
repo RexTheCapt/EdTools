@@ -21,7 +21,7 @@ namespace CoriolisBackupAssistant
         internal static void Main(string[] args)
         {
 #if DEBUG
-            //args = new string[] { "--save", "--notepad" };
+            args = new string[] { "--save", "--notepad" };
 #endif
             #region arg handler
             for (int i = 0; i < args.Length; i++)
@@ -207,12 +207,16 @@ namespace CoriolisBackupAssistant
                 Console.ForegroundColor = ConsoleColor.Gray;
                 ConsoleKeyInfo consoleKeyInfo = Console.ReadKey();
 
-                if (consoleKeyInfo.Key != ConsoleKey.Y) goto SkipSave;
+                if (consoleKeyInfo.Key != ConsoleKey.Y)
+                {
+                    Console.Clear();
+                    Save();
+                    return;
+                }
             }
 
             settings.Save();
             Console.WriteLine("Save complete");
-        SkipSave:
             return;
         }
 
