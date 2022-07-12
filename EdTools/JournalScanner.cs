@@ -322,6 +322,7 @@ namespace EdTools
                                     case "SellOrganicData":
                                     case "CarrierBankTransfer":
                                     case "PVPKill":
+                                    case "Passengers":
                                         break;
                                     #endregion
                                     default:
