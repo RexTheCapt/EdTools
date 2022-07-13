@@ -21,7 +21,7 @@ namespace CoriolisBackupAssistant
         internal static void Main(string[] args)
         {
 #if DEBUG
-            args = new string[] { "--save", "--notepad" };
+            //args = new string[] { "--save", "--notepad" };
 #endif
             #region arg handler
             for (int i = 0; i < args.Length; i++)
@@ -203,13 +203,14 @@ namespace CoriolisBackupAssistant
                 Console.ForegroundColor = ConsoleColor.Red;
                 Console.WriteLine("-----WARNING-----WARNING-----WARNING-----");
                 Console.WriteLine("Something is wrong with the json format, continue saving?");
-                Console.Write("Y > ");
+                Console.Write("[Y/N] >> ");
                 Console.ForegroundColor = ConsoleColor.Gray;
                 ConsoleKeyInfo consoleKeyInfo = Console.ReadKey();
 
                 if (consoleKeyInfo.Key != ConsoleKey.Y)
                 {
                     Console.Clear();
+                    Console.WriteLine("Follow the instructions in the popup.");
                     Save();
                     return;
                 }
