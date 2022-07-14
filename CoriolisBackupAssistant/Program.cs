@@ -17,12 +17,17 @@ namespace CoriolisBackupAssistant
         private static Settings settings;
         private static bool useNotePad = false;
         private static BackupType backupType;
+        private static string tmpFileName = $"tmp\\{FileName.Get()}.json";
 
         internal static void Main(string[] args)
         {
 #if DEBUG
-            //args = new string[] { "--save", "--notepad" };
+            //args = new string[] { "--notepad" };
 #endif
+            if (Directory.Exists("tmp"))
+                Directory.Delete("tmp", true);
+            Directory.CreateDirectory("tmp");
+
             #region arg handler
             for (int i = 0; i < args.Length; i++)
             {
@@ -106,10 +111,10 @@ namespace CoriolisBackupAssistant
             Console.Clear();
             if (useNotePad)
             {
-                using (var sw = new StreamWriter("tmp.json"))
+                using (var sw = new StreamWriter(tmpFileName))
                     sw.WriteLine(toPrint);
 
-                Process.Start("notepad", "tmp.json");
+                Process.Start("notepad", tmpFileName);
             }
             Console.WriteLine(toPrint);
 
@@ -151,10 +156,10 @@ namespace CoriolisBackupAssistant
             }
             else
             {
-                if (File.Exists("tmp.json"))
-                    File.Delete("tmp.json");
+                if (File.Exists(tmpFileName))
+                    File.Delete(tmpFileName);
 
-                using (var stream = File.Create("tmp.json"))
+                using (var stream = File.Create(tmpFileName))
                 using (var writer = new StreamWriter(stream))
                 {
                     writer.WriteLine("How to use:\n" +
@@ -168,19 +173,19 @@ namespace CoriolisBackupAssistant
                                      "8: Save by pressing CTRL+S and close this window.");
                 }
 
-                Process.Start("notepad", "tmp.json");
-                System.IO.FileInfo fi = new("tmp.json");
+                Process.Start("notepad", tmpFileName);
+                System.IO.FileInfo fi = new(tmpFileName);
                 DateTime creationDatetime = fi.LastWriteTime;
 
                 while (creationDatetime == fi.LastWriteTime)
                 {
-                    fi = new("tmp.json");
+                    fi = new(tmpFileName);
                     Thread.Sleep(1000);
                 }
 
                 sb = new();
 
-                using (var stream = File.OpenRead("tmp.json"))
+                using (var stream = File.OpenRead(tmpFileName))
                 using (var reader = new StreamReader(stream))
                 {
                     while (!reader.EndOfStream)
