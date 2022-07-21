@@ -65,6 +65,20 @@ namespace CoriolisBackupAssistant
 
             settings = new Settings("CoriolisBackupAssistant", "backup", "RexTheCapt", Settings.LocationEnum.Roaming);
 
+            while (!settings.GetBool("EULA Agreement"))
+            {
+                Console.Write("Veyr Impartont eULa: https://paste.fuelrats.com/fupucuxeqo.sql\nDo you agree? ");
+                var input = Console.ReadLine();
+
+                if (input == null) continue;
+
+                if (input.Contains("yes", StringComparison.OrdinalIgnoreCase))
+                {
+                    settings.SetBool("EULA Agreement", true);
+                    settings.Save();
+                }
+            }
+
             if (backupType == BackupType.None)
             {
                 Console.WriteLine("Do you want to (1) save backup or (2) load backup?");
