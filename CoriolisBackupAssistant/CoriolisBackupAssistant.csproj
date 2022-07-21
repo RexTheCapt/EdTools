@@ -19,4 +19,10 @@
     </Reference>
   </ItemGroup>
 
+  <ItemGroup>
+    <None Update="README.TXT">
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+
 </Project>
