@@ -11,9 +11,12 @@ namespace EdTools
         public bool FirstRun { get => _firstRun; private set { _firstRun = value; } }
         private bool _firstRun = true;
         private string _journalPath;
+        private static JournalScanner? _instance = null;
 
         public JournalScanner()
         {
+            if (_instance != null) throw new Exception("Can only exist one journal scanner!");
+
             _journalPath = $"{Environment.GetFolderPath(Environment.SpecialFolder.UserProfile)}\\Saved Games\\Frontier Developments\\Elite Dangerous";
         }
 
@@ -30,7 +33,7 @@ namespace EdTools
             _journalPath = journalPath;
         }
 
-        public void TimerScan(object? sender, EventArgs e) => TimerScan();
+        public void TimerScan(object? sender, System.EventArgs e) => TimerScan();
         public void TimerScan() => TimerScan(sendEventsOnFirstRun: true);
         public void TimerScan(bool sendEventsOnFirstRun = true)
         {
@@ -54,13 +57,17 @@ namespace EdTools
                 using (var reader = new StreamReader(fs))
                     while (!reader.EndOfStream)
                     {
-                        JObject? @event = (JObject)JsonConvert.DeserializeObject(reader.ReadLine());
+                        string? read = reader.ReadLine();
+
+                        if (read == null) continue;
+
+                        JObject? @event = (JObject?)JsonConvert.DeserializeObject(read);
                         if (@event != null)
                         {
                             DateTime currentEventDateTime = @event.Value<DateTime>("timestamp");
                             if (currentEventDateTime >= LastEventTime && currentEventDateTime != LastProcessedEventTime)
                             {
-                                string eventType = @event.Value<string>("event");
+                                string? eventType = @event.Value<string>("event");
 
                                 if (!sendEventsOnFirstRun && FirstRun)
                                     goto SkipEventSend;
@@ -326,10 +333,12 @@ namespace EdTools
                                         break;
                                     #endregion
                                     default:
-                                        Console.WriteLine($"UNKNOWN_EVENT: {eventType}");
+                                        //Console.WriteLine($"UNKNOWN_EVENT: {eventType}");
                                         OnUnknown(new UnknownEventArgs(@event: @event, FirstRun));
                                         break;
                                 }
+
+                                OnEvent(new OnEventArgs(@event: @event, FirstRun));
 
                             SkipEventSend:
                                 LastEventTime = currentEventDateTime;
@@ -343,7 +352,38 @@ namespace EdTools
             LastProcessedEventTime = LastEventTime;
         }
 
+        public void ReRead()
+        {
+            LastEventTime = DateTime.MinValue;
+            LastWriteTime = DateTime.MinValue;
+        }
+
         #region Events
+        #region Event
+        public static event EventHandler OnEventHandler;
+
+        protected virtual void OnEvent(OnEventArgs e)
+        {
+            EventHandler handler = OnEventHandler;
+            handler?.Invoke(this, e);
+        }
+
+        public class OnEventArgs : System.EventArgs
+        {
+            public OnEventArgs(JObject @event, bool firstRun)
+            {
+                OnEvent = @event;
+                this.FirstRun = firstRun;
+            }
+
+            /// <summary>
+            /// <para>timestamp</para>
+            /// <para>event</para>
+            /// </summary>
+            public JObject OnEvent { get; private set; }
+            public bool FirstRun { get; private set; }
+        }
+        #endregion
         #region ReceiveText
         public static event EventHandler ReceiveTextHandler;
 
@@ -353,7 +393,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class ReceiveTextEventArgs : EventArgs
+        public class ReceiveTextEventArgs : System.EventArgs
         {
             public ReceiveTextEventArgs(JObject @event, bool firstRun)
             {
@@ -383,7 +423,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class RefuelAllEventArgs : EventArgs
+        public class RefuelAllEventArgs : System.EventArgs
         {
             public RefuelAllEventArgs(JObject @event, bool firstRun)
             {
@@ -404,7 +444,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class UseConsumableEventArgs : EventArgs
+        public class UseConsumableEventArgs : System.EventArgs
         {
             public UseConsumableEventArgs(JObject @event, bool firstRun)
             {
@@ -425,7 +465,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class SendTextEventArgs : EventArgs
+        public class SendTextEventArgs : System.EventArgs
         {
             public SendTextEventArgs(JObject @event, bool firstRun)
             {
@@ -454,7 +494,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class CommanderEventArgs : EventArgs
+        public class CommanderEventArgs : System.EventArgs
         {
             public CommanderEventArgs(JObject @event, bool firstRun)
             {
@@ -475,7 +515,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class CarrierJumpCancelledEventArgs : EventArgs
+        public class CarrierJumpCancelledEventArgs : System.EventArgs
         {
             public CarrierJumpCancelledEventArgs(JObject @event, bool firstRun)
             {
@@ -496,7 +536,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class CarrierTradeOrderEventArgs : EventArgs
+        public class CarrierTradeOrderEventArgs : System.EventArgs
         {
             public CarrierTradeOrderEventArgs(JObject @event, bool firstRun)
             {
@@ -517,7 +557,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class CarrierJumpRequestEventArgs : EventArgs
+        public class CarrierJumpRequestEventArgs : System.EventArgs
         {
             public CarrierJumpRequestEventArgs(JObject @event, bool firstRun)
             {
@@ -538,7 +578,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class CarrierStatsEventArgs : EventArgs
+        public class CarrierStatsEventArgs : System.EventArgs
         {
             public CarrierStatsEventArgs(JObject @event, bool firstRun)
             {
@@ -559,7 +599,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class CarrierDepositFuelEventArgs : EventArgs
+        public class CarrierDepositFuelEventArgs : System.EventArgs
         {
             public CarrierDepositFuelEventArgs(JObject @event, bool firstRun)
             {
@@ -580,7 +620,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class UnknownEventArgs : EventArgs
+        public class UnknownEventArgs : System.EventArgs
         {
             public UnknownEventArgs(JObject @event, bool firstRun)
             {
@@ -601,7 +641,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class CockpitBreachedEventArgs : EventArgs
+        public class CockpitBreachedEventArgs : System.EventArgs
         {
             public CockpitBreachedEventArgs(JObject @event, bool firstRun)
             {
@@ -622,7 +662,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class BuyDronesEventArgs : EventArgs
+        public class BuyDronesEventArgs : System.EventArgs
         {
             public BuyDronesEventArgs(JObject @event, bool firstRun)
             {
@@ -643,7 +683,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class SellDronesEventArgs : EventArgs
+        public class SellDronesEventArgs : System.EventArgs
         {
             public SellDronesEventArgs(JObject @event, bool firstRun)
             {
@@ -664,7 +704,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class RepairDroneEventArgs : EventArgs
+        public class RepairDroneEventArgs : System.EventArgs
         {
             public RepairDroneEventArgs(JObject @event, bool firstRun)
             {
@@ -685,7 +725,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class WingJoinEventArgs : EventArgs
+        public class WingJoinEventArgs : System.EventArgs
         {
             public WingJoinEventArgs(JObject @event, bool firstRun)
             {
@@ -706,7 +746,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class WingLeaveEventArgs : EventArgs
+        public class WingLeaveEventArgs : System.EventArgs
         {
             public WingLeaveEventArgs(JObject @event, bool firstRun)
             {
@@ -727,7 +767,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class WingAddEventArgs : EventArgs
+        public class WingAddEventArgs : System.EventArgs
         {
             public WingAddEventArgs(JObject @event, bool firstRun)
             {
@@ -748,7 +788,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class WingInviteEventArgs : EventArgs
+        public class WingInviteEventArgs : System.EventArgs
         {
             public WingInviteEventArgs(JObject @event, bool firstRun)
             {
@@ -769,7 +809,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class JetConeBoostEventArgs : EventArgs
+        public class JetConeBoostEventArgs : System.EventArgs
         {
             public JetConeBoostEventArgs(JObject @event, bool firstRun)
             {
@@ -790,7 +830,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class ScanBaryCentreEventArgs : EventArgs
+        public class ScanBaryCentreEventArgs : System.EventArgs
         {
             public ScanBaryCentreEventArgs(JObject @event, bool firstRun)
             {
@@ -811,7 +851,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class ShipTargetedEventArgs : EventArgs
+        public class ShipTargetedEventArgs : System.EventArgs
         {
             public ShipTargetedEventArgs(JObject @event, bool firstRun)
             {
@@ -832,7 +872,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class FuelScoopEventArgs : EventArgs
+        public class FuelScoopEventArgs : System.EventArgs
         {
             public FuelScoopEventArgs(JObject @event, bool firstRun)
             {
@@ -853,7 +893,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class ScanEventArgs : EventArgs
+        public class ScanEventArgs : System.EventArgs
         {
             public ScanEventArgs(JObject @event, bool firstRun)
             {
@@ -874,7 +914,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class LocationEventArgs : EventArgs
+        public class LocationEventArgs : System.EventArgs
         {
             public LocationEventArgs(JObject @event, bool firstRun)
             {
@@ -895,7 +935,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class LoadGameEventArgs : EventArgs
+        public class LoadGameEventArgs : System.EventArgs
         {
             public LoadGameEventArgs(JObject @event, bool firstRun)
             {
@@ -937,7 +977,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class ReservoirReplenishedEventArgs : EventArgs
+        public class ReservoirReplenishedEventArgs : System.EventArgs
         {
             public ReservoirReplenishedEventArgs(JObject @event, bool firstRun)
             {
@@ -958,7 +998,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class DockedEventArgs : EventArgs
+        public class DockedEventArgs : System.EventArgs
         {
             public DockedEventArgs(JObject @event, bool firstRun)
             {
@@ -979,7 +1019,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class ApproachBodyEventArgs : EventArgs
+        public class ApproachBodyEventArgs : System.EventArgs
         {
             public ApproachBodyEventArgs(JObject @event, bool firstRun)
             {
@@ -1000,7 +1040,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class LeaveBodyEventArgs : EventArgs
+        public class LeaveBodyEventArgs : System.EventArgs
         {
             public LeaveBodyEventArgs(JObject @event, bool firstRun)
             {
@@ -1021,7 +1061,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class FriendsEventArgs : EventArgs
+        public class FriendsEventArgs : System.EventArgs
         {
             public FriendsEventArgs(JObject @event, bool firstRun)
             {
@@ -1042,7 +1082,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class SupercruiseExitEventArgs : EventArgs
+        public class SupercruiseExitEventArgs : System.EventArgs
         {
             public SupercruiseExitEventArgs(JObject @event, bool firstRun)
             {
@@ -1063,7 +1103,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class FSDJumpEventArgs : EventArgs
+        public class FSDJumpEventArgs : System.EventArgs
         {
             public FSDJumpEventArgs(JObject @event, bool firstRun)
             {
@@ -1084,7 +1124,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class SupercruiseEntryEventArgs : EventArgs
+        public class SupercruiseEntryEventArgs : System.EventArgs
         {
             public SupercruiseEntryEventArgs(JObject @event, bool firstRun)
             {
@@ -1105,7 +1145,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class LoadoutEventArgs : EventArgs
+        public class LoadoutEventArgs : System.EventArgs
         {
             public LoadoutEventArgs(JObject @event, bool firstRun)
             {
@@ -1126,7 +1166,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class CarrierJumpEventArgs : EventArgs
+        public class CarrierJumpEventArgs : System.EventArgs
         {
             public CarrierJumpEventArgs(JObject @event, bool firstRun)
             {
@@ -1147,7 +1187,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class StoredModulesEventArgs : EventArgs
+        public class StoredModulesEventArgs : System.EventArgs
         {
             public StoredModulesEventArgs(JObject @event, bool firstRun)
             {
@@ -1168,7 +1208,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class MarketEventArgs : EventArgs
+        public class MarketEventArgs : System.EventArgs
         {
             public MarketEventArgs(JObject @event, bool firstRun)
             {
@@ -1189,7 +1229,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class ShipyardEventArgs : EventArgs
+        public class ShipyardEventArgs : System.EventArgs
         {
             public ShipyardEventArgs(JObject @event, bool firstRun)
             {
@@ -1210,7 +1250,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class OutfittingEventArgs : EventArgs
+        public class OutfittingEventArgs : System.EventArgs
         {
             public OutfittingEventArgs(JObject @event, bool firstRun)
             {
@@ -1231,7 +1271,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class StoredShipsEventArgs : EventArgs
+        public class StoredShipsEventArgs : System.EventArgs
         {
             public StoredShipsEventArgs(JObject @event, bool firstRun)
             {
@@ -1252,7 +1292,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class EmbarkEventArgs : EventArgs
+        public class EmbarkEventArgs : System.EventArgs
         {
             public EmbarkEventArgs(JObject @event, bool firstRun)
             {
@@ -1273,7 +1313,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class DisembarkEventArgs : EventArgs
+        public class DisembarkEventArgs : System.EventArgs
         {
             public DisembarkEventArgs(JObject @event, bool firstRun)
             {
@@ -1294,7 +1334,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class LiftoffEventArgs : EventArgs
+        public class LiftoffEventArgs : System.EventArgs
         {
             public LiftoffEventArgs(JObject @event, bool firstRun)
             {
@@ -1315,7 +1355,7 @@ namespace EdTools
             handler?.Invoke(this, e);
         }
 
-        public class TouchdownEventArgs : EventArgs
+        public class TouchdownEventArgs : System.EventArgs
         {
             public TouchdownEventArgs(JObject @event, bool firstRun)
             {

@@ -10,10 +10,8 @@ namespace EDChatTranslator
 {
     internal class Program
     {
-        private static string? languageCode;
+        private static string languageCode;
         private readonly static string MessageFormat = "[__TIMESTAMP__] __DIRECTION__ __FROM__ : __MESSAGE__";
-        private static bool _handlersSet = false;
-
         internal static void Main()
         {
             Console.Title = "ED Chat Translator";
@@ -23,63 +21,22 @@ namespace EDChatTranslator
 
             JournalScanner js = new JournalScanner();
 
-            if (!_handlersSet)
-            {
-                JournalScanner.ReceiveTextHandler += JournalScanner_ReceiveTextHandler;
-                JournalScanner.SendTextHandler += JournalScanner_SendTextHandler;
-                JournalScanner.UnknownEventHandler += JournalScanner_UnknownEventHandler;
-                //JournalScanner.OnEventHandler += JournalScanner_OnEventHandler;
-                _handlersSet = true;
-            }
+            JournalScanner.ReceiveTextHandler += JournalScanner_ReceiveTextHandler;
+            JournalScanner.SendTextHandler += JournalScanner_SendTextHandler;
 
             while (true)
             {
                 js.TimerScan();
-                Console.ForegroundColor = ConsoleColor.Gray;
 
                 DateTime end = DateTime.Now;
                 Thread.Sleep(1000);
 
                 bool brk = false;
                 while (Console.KeyAvailable)
-                {
-                    ConsoleKeyInfo consoleKeyInfo = Console.ReadKey(true);
-                    brk = consoleKeyInfo.Key == ConsoleKey.Q;
-
-                    if (brk)
-                        Console.WriteLine("Quitting...");
-
-                    if (consoleKeyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) && consoleKeyInfo.Modifiers.HasFlag(ConsoleModifiers.Shift) && consoleKeyInfo.Key == ConsoleKey.R)
-                    {
-                        Main();
-                        return;
-                    }
-                    else if (consoleKeyInfo.Modifiers.HasFlag(ConsoleModifiers.Control) && consoleKeyInfo.Key == ConsoleKey.R)
-                    {
-                        Console.WriteLine("Re-reading journal...");
-                        js.ReRead();
-                    }
-                }
+                    brk = Console.ReadKey(true).Key == ConsoleKey.Q;
                 
                 if (brk) break;
             }
-        }
-
-        private static void JournalScanner_OnEventHandler(object? sender, EventArgs e)
-        {
-            var ea = (JournalScanner.OnEventArgs)e;
-
-            if (ea.FirstRun) return;
-
-            Console.ForegroundColor = ConsoleColor.Gray;
-            Console.WriteLine($"{ea.OnEvent.Value<string>("event")}");
-        }
-
-        private static void JournalScanner_UnknownEventHandler(object? sender, EventArgs e)
-        {
-            Console.ForegroundColor = ConsoleColor.Red;
-            JournalScanner.UnknownEventArgs ea = (JournalScanner.UnknownEventArgs)e;
-            Console.WriteLine($"The event \"{ea.UnknownEvent.Value<string>("event")}\" is unknown");
         }
 
         private static void JournalScanner_SendTextHandler(object? sender, EventArgs e)
@@ -98,12 +55,8 @@ namespace EDChatTranslator
             if (message == null) return;
             if (sent == null) return;
 
-            string translatedMessage = Translate(message);
-
-            Console.ForegroundColor = ConsoleColor.DarkBlue;
             Console.WriteLine(FormatMessage((DateTime)timestamp, false, "me", message));
-            Console.ForegroundColor = ConsoleColor.Blue;
-            Console.WriteLine(FormatMessage((DateTime)timestamp, false, "me", translatedMessage));
+
         }
 
         private static void JournalScanner_ReceiveTextHandler(object? sender, EventArgs e)
@@ -123,9 +76,6 @@ namespace EDChatTranslator
 
             string translatedMessage = Translate(message);
 
-            Console.ForegroundColor = ConsoleColor.DarkGreen;
-            Console.WriteLine(FormatMessage((DateTime)timestamp, true, from, message));
-            Console.ForegroundColor = ConsoleColor.Green;
             Console.WriteLine(FormatMessage((DateTime)timestamp, true, from, translatedMessage));
         }
 
@@ -135,7 +85,7 @@ namespace EDChatTranslator
             return s;
         }
 
-        private static string Translate(string? v)
+        private static string Translate(string v)
         {
             if (v == null) return null;
 
