@@ -28,31 +28,44 @@ namespace EdTools
             TimerScan();
         }
 
+        public void ScanAll()
+        {
+            string[] journals = Directory.GetFiles(_journalPath, "Journal.*.log").OrderBy(x=>(new FileInfo(x)).LastWriteTime).ToArray();
+
+            foreach (string s in journals)
+                TimerScan(s);
+        }
+
         public JournalScanner (string journalPath)
         {
             _journalPath = journalPath;
         }
 
         public void TimerScan(object? sender, System.EventArgs e) => TimerScan();
-        public void TimerScan() => TimerScan(sendEventsOnFirstRun: true);
-        public void TimerScan(bool sendEventsOnFirstRun = true)
+        public void TimerScan() => TimerScan(sendEventsOnFirstRun: true, overrideFile: null);
+        public void TimerScan(string overrideFile) => TimerScan(sendEventsOnFirstRun: true, overrideFile: overrideFile);
+        public void TimerScan(bool sendEventsOnFirstRun = true, string? overrideFile = null)
         {
             string newest = "";
             DateTime currentWriteTime = DateTime.MinValue;
 
-            foreach (string f in Directory.GetFiles(_journalPath, "Journal.*.log"))
-            {
-                FileInfo fi = new FileInfo(f);
-
-                if (fi.LastWriteTime > currentWriteTime)
+            if (overrideFile == null)
+                foreach (string f in Directory.GetFiles(_journalPath, "Journal.*.log"))
                 {
-                    currentWriteTime = fi.LastWriteTime;
-                    newest = f;
-                }
-            }
+                    FileInfo fi = new FileInfo(f);
 
-            if (LastWriteTime != currentWriteTime)
+                    if (fi.LastWriteTime > currentWriteTime)
+                    {
+                        currentWriteTime = fi.LastWriteTime;
+                        newest = f;
+                    }
+                }
+
+            if (LastWriteTime != currentWriteTime || overrideFile != null)
             {
+                if (overrideFile != null)
+                    newest = overrideFile;
+
                 var fs = new FileStream(newest, FileMode.Open, FileAccess.Read, FileShare.ReadWrite);
                 using (var reader = new StreamReader(fs))
                     while (!reader.EndOfStream)
@@ -65,11 +78,11 @@ namespace EdTools
                         if (@event != null)
                         {
                             DateTime currentEventDateTime = @event.Value<DateTime>("timestamp");
-                            if (currentEventDateTime >= LastEventTime && currentEventDateTime != LastProcessedEventTime)
+                            if (currentEventDateTime >= LastEventTime && currentEventDateTime != LastProcessedEventTime || overrideFile != null)
                             {
                                 string? eventType = @event.Value<string>("event");
 
-                                if (!sendEventsOnFirstRun && FirstRun)
+                                if (!sendEventsOnFirstRun && FirstRun && overrideFile == null)
                                     goto SkipEventSend;
 
                                 switch (eventType)
@@ -341,7 +354,8 @@ namespace EdTools
                                 OnEvent(new OnEventArgs(@event: @event, FirstRun));
 
                             SkipEventSend:
-                                LastEventTime = currentEventDateTime;
+                                if (overrideFile == null)
+                                    LastEventTime = currentEventDateTime;
                             }
                         }
                     }
@@ -395,6 +409,14 @@ namespace EdTools
 
         public class ReceiveTextEventArgs : System.EventArgs
         {
+            public string? Channel => ReceiveText.Value<string>("Channel");
+
+            public string? Message => ReceiveText.Value<string>("Message");
+
+            public string? From => ReceiveText.Value<string>("From");
+
+            public DateTime? Timestamp => ReceiveText.Value<DateTime>("timestamp");
+
             public ReceiveTextEventArgs(JObject @event, bool firstRun)
             {
                 ReceiveText = @event;
@@ -467,6 +489,21 @@ namespace EdTools
 
         public class SendTextEventArgs : System.EventArgs
         {
+            public DateTime? Timestamp => SendText.Value<DateTime>("timestamp");
+
+            /// <summary>
+            /// Which channel the message was sent to.
+            /// </summary>
+            public string? To => SendText.Value<string>("To");
+            /// <summary>
+            /// Content of the message.
+            /// </summary>
+            public string? Message => SendText.Value<string>("Message");
+            /// <summary>
+            /// If message was sent.
+            /// </summary>
+            public bool? Sent => SendText.Value<bool>("Sent");
+
             public SendTextEventArgs(JObject @event, bool firstRun)
             {
                 SendText = @event;
@@ -927,6 +964,27 @@ namespace EdTools
         }
         #endregion
         #region LoadGame
+        /// <summary>
+        /// Tokens:
+        /// <para>timestamp</para>
+        /// <para>event</para>
+        /// <para>FID</para>
+        /// <para>Commander</para>
+        /// <para>Horizons</para>
+        /// <para>Odyssey</para>
+        /// <para>Ship</para>
+        /// <para>ShipID</para>
+        /// <para>ShipName</para>
+        /// <para>ShipIdent</para>
+        /// <para>FuelLevel</para>
+        /// <para>FuelCapacity</para>
+        /// <para>GameMode</para>
+        /// <para>Credits</para>
+        /// <para>Loan</para>
+        /// <para>language</para>
+        /// <para>gameversion</para>
+        /// <para>build</para>
+        /// </summary>
         public static event EventHandler LoadGameHandler;
 
         protected virtual void OnLoadGame(LoadGameEventArgs e)
